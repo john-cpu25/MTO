@@ -1,0 +1,35 @@
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\RincoMTO.deps.json
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\RincoMTO.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\RincoMTO.pdb
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\ClosedXML.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\CommunityToolkit.Mvvm.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\DocumentFormat.OpenXml.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\ExcelNumberFormat.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\Irony.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\Microsoft.Xaml.Behaviors.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\SixLabors.Fonts.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\bin\Debug\net8.0-windows\XLParser.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO.csproj.AssemblyReference.cache
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\Duplicate Sheet\UI\SelectSheetsWindow.baml
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\MTO Group Bar\UI\MtoGroupBarWindow.baml
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\MTO Query\UI\MtoQueryWindow.baml
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\Duplicate Sheet\UI\SelectSheetsWindow.g.cs
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\MTO Group Bar\UI\MtoGroupBarWindow.g.cs
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\MTO Query\UI\MtoQueryWindow.g.cs
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.g.cs
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO_MarkupCompile.cache
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO_MarkupCompile.lref
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.baml
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO.g.resources
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO.AssemblyInfoInputs.cache
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO.AssemblyInfo.cs
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO.csproj.CoreCompileInputs.cache
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO.csproj.Up2Date
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\refint\RincoMTO.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\RincoMTO.pdb
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\ref\RincoMTO.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.baml
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.g.cs

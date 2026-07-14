@@ -1,0 +1,126 @@
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <ComponentGroup Id="BundleComponentGroup" Directory="INSTALLFOLDER">
+      <Component Guid="c351325b-e2ba-4540-ab3a-011a5ad1af89">
+        <File Source="..\RincoMTO.bundle\PackageContents.xml" KeyPath="yes" />
+      </Component>
+      <Component Guid="906c22b6-45f7-400d-9939-8f4fd67ff75c" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\Microsoft.Bcl.AsyncInterfaces.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="63b085c2-4dd6-4548-bf80-297f42b75caf" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\RincoMTO.addin" KeyPath="yes" />
+      </Component>
+      <Component Guid="be52c1ef-9ee1-4b88-b6ba-d46fa11036aa" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\RincoMTO.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="9ebad9b1-e46b-4cf5-934b-f9dbf4d17bc0" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\System.Buffers.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="08091674-6fb1-4317-8c5f-f5739765e7cb" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\System.Memory.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="b524f639-fe90-43ef-826d-56a757552d03" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\System.Numerics.Vectors.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="28bf8ec5-b688-4c3d-ae3d-7eee8ec3b9de" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\System.Runtime.CompilerServices.Unsafe.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="e68ea2b9-2145-4c0e-a6c2-24f1a48a50ba" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\System.Text.Encodings.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="eddd874e-1e69-4665-98fc-dca1572ad586" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\System.Text.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="fc055be2-3e6b-482b-9982-e3bb75506991" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\System.Threading.Tasks.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="c4b755cd-add0-4b5b-ba15-6186f8dbe1f2" Subdirectory="Contents\2022">
+        <File Source="..\RincoMTO.bundle\Contents\2022\System.ValueTuple.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="6e12f718-4190-46e3-a221-95beb9d73c84" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\Microsoft.Bcl.AsyncInterfaces.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="325efd17-0912-4f61-91ca-6f6a12dd4533" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\RincoMTO.addin" KeyPath="yes" />
+      </Component>
+      <Component Guid="48662d70-8df9-4d2a-ab6e-d036a7615d5d" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\RincoMTO.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="0fc4fc8d-5efa-497f-ad94-1f34462437fd" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\System.Buffers.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="00efcdad-c112-4885-a3fe-09c3d39ca064" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\System.Memory.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="bb79338a-a398-4a58-8bc5-604ef40c01ac" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\System.Numerics.Vectors.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="af50ba06-b77e-4f2a-b278-06e9089e803a" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\System.Runtime.CompilerServices.Unsafe.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="d0ce918c-226e-4a2a-87dd-4af56a916872" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\System.Text.Encodings.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="3184b90a-670c-422d-a0ab-ad1aba2d4eeb" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\System.Text.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="68b36bdf-83fa-4942-a9c2-0921a339438c" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\System.Threading.Tasks.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="0218ea63-ccb7-4556-ab34-06321a9cba57" Subdirectory="Contents\2023">
+        <File Source="..\RincoMTO.bundle\Contents\2023\System.ValueTuple.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="33e59915-e972-4607-a66f-2b44dbeb5024" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\Microsoft.Bcl.AsyncInterfaces.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="7de65e1b-f9c2-4216-8bef-0d1e2bde9945" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\RincoMTO.addin" KeyPath="yes" />
+      </Component>
+      <Component Guid="5e3b7106-3022-49d9-95a1-d2669b904ab0" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\RincoMTO.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="e5f55c87-ec8f-4ebd-9f47-d31ed74e3ab7" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\System.Buffers.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="4e1b0808-302f-44d7-99fa-cd17572d638d" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\System.Memory.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="791ee551-e07e-4643-94b4-911fd52445b3" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\System.Numerics.Vectors.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="132d9da9-8e45-4221-a63a-76a1b03abce1" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\System.Runtime.CompilerServices.Unsafe.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="e6b70465-da85-47a2-8c01-746ce95d7929" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\System.Text.Encodings.Web.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="256b85d0-3e15-4d10-8389-bec67f522a07" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\System.Text.Json.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="5b996a58-d8ca-4b1f-a1a9-a65428bd11a5" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\System.Threading.Tasks.Extensions.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="feccdc80-b0bf-41f5-8095-3e577ce1bb64" Subdirectory="Contents\2024">
+        <File Source="..\RincoMTO.bundle\Contents\2024\System.ValueTuple.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="b3e4b9c4-aadd-4078-abb1-5110c0298a5f" Subdirectory="Contents\2025">
+        <File Source="..\RincoMTO.bundle\Contents\2025\RincoMTO.addin" KeyPath="yes" />
+      </Component>
+      <Component Guid="4dd335c4-9eda-4cdb-843d-bb75d5948b6e" Subdirectory="Contents\2025">
+        <File Source="..\RincoMTO.bundle\Contents\2025\RincoMTO.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="6f10ebd6-8b1e-47bc-879f-b456e2dc5c64" Subdirectory="Contents\2026">
+        <File Source="..\RincoMTO.bundle\Contents\2026\RincoMTO.addin" KeyPath="yes" />
+      </Component>
+      <Component Guid="216e220a-f443-4bc2-aaa5-7fe8c9a80fce" Subdirectory="Contents\2026">
+        <File Source="..\RincoMTO.bundle\Contents\2026\RincoMTO.dll" KeyPath="yes" />
+      </Component>
+      <Component Guid="90530e2b-afcf-4557-b35c-046bfbdce5aa" Subdirectory="Contents\Resources">
+        <File Source="..\RincoMTO.bundle\Contents\Resources\Filter.png" KeyPath="yes" />
+      </Component>
+      <Component Guid="957bf797-a13b-4112-876b-2f0e57bd013b" Subdirectory="Contents\Resources">
+        <File Source="..\RincoMTO.bundle\Contents\Resources\ReloadCAD.png" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

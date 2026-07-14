@@ -1,0 +1,79 @@
+<Window x:Class="RincoMTO.Tools.RenameSheetNumber.UI.RenameSheetNumberWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Rename Sheet Numbers" Height="600" Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Rename Rules" Grid.Row="0" Margin="0,0,0,10" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Find & Replace -->
+                <TextBlock Text="Find:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                <TextBox x:Name="txtFind" Grid.Row="0" Grid.Column="1" Margin="0,0,10,10" Height="24" VerticalContentAlignment="Center"/>
+                
+                <TextBlock Text="Replace:" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                <TextBox x:Name="txtReplace" Grid.Row="0" Grid.Column="3" Margin="0,0,0,10" Height="24" VerticalContentAlignment="Center"/>
+
+                <!-- Prefix & Suffix -->
+                <TextBlock Text="Prefix:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                <TextBox x:Name="txtPrefix" Grid.Row="1" Grid.Column="1" Margin="0,0,10,10" Height="24" VerticalContentAlignment="Center"/>
+                
+                <TextBlock Text="Suffix:" Grid.Row="1" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                <TextBox x:Name="txtSuffix" Grid.Row="1" Grid.Column="3" Margin="0,0,0,10" Height="24" VerticalContentAlignment="Center"/>
+
+                <!-- Auto Numbering -->
+                <CheckBox x:Name="chkAutoNumber" Content="Auto Numbering (Replaces Find/Replace)" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                
+                <TextBlock Text="Start Number:" Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBox x:Name="txtStartNumber" Grid.Row="2" Grid.Column="3" Height="24" VerticalContentAlignment="Center" Text="01"/>
+            </Grid>
+        </GroupBox>
+
+        <DataGrid x:Name="dgSheets" Grid.Row="1" AutoGenerateColumns="False" CanUserAddRows="False" Margin="0,0,0,10">
+            <DataGrid.Columns>
+                <DataGridCheckBoxColumn Header="Select" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" Width="50"/>
+                <DataGridTextColumn Header="Old Number" Binding="{Binding OldNumber}" Width="100" IsReadOnly="True"/>
+                <DataGridTextColumn Header="New Number" Binding="{Binding NewNumber}" Width="150" IsReadOnly="True"/>
+                <DataGridTextColumn Header="Sheet Name" Binding="{Binding SheetName}" Width="*" IsReadOnly="True"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Content="Check All" Width="80" Height="30" Grid.Column="0" Margin="0,0,10,0" Click="BtnCheckAll_Click"/>
+            <Button Content="Uncheck All" Width="80" Height="30" Grid.Column="1" Click="BtnUncheckAll_Click"/>
+
+            <Button Content="Preview" Width="100" Height="30" Grid.Column="3" Margin="0,0,10,0" Click="BtnPreview_Click"/>
+            <Button Content="OK" Width="100" Height="30" Grid.Column="4" Margin="0,0,10,0" Click="BtnOk_Click" Background="#FF007ACC" Foreground="White"/>
+            <Button Content="Cancel" Width="100" Height="30" Grid.Column="5" Click="BtnCancel_Click"/>
+        </Grid>
+    </Grid>
+</Window>

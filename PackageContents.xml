@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0" AutodeskProduct="Revit" ProductType="Application">
+    <CompanyDetails Name="NGUYEN" />
+    <RuntimeRequirements OS="Win64" Platform="Revit" />
+
+    <Components Description="Revit 2022">
+        <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R2022" SeriesMax="R2022" />
+        <ComponentEntry ModuleName="./Contents/2022/RincoMTO.addin" />
+    </Components>
+
+    <Components Description="Revit 2023">
+        <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R2023" SeriesMax="R2023" />
+        <ComponentEntry ModuleName="./Contents/2023/RincoMTO.addin" />
+    </Components>
+
+    <Components Description="Revit 2024">
+        <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R2024" SeriesMax="R2024" />
+        <ComponentEntry ModuleName="./Contents/2024/RincoMTO.addin" />
+    </Components>
+
+    <Components Description="Revit 2025">
+        <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R2025" SeriesMax="R2025" />
+        <ComponentEntry ModuleName="./Contents/2025/RincoMTO.addin" />
+    </Components>
+
+    <Components Description="Revit 2026">
+        <RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R2026" SeriesMax="R2026" />
+        <ComponentEntry ModuleName="./Contents/2026/RincoMTO.addin" />
+    </Components>
+</ApplicationPackage>

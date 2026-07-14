@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+    <EnableDefaultPageItems>true</EnableDefaultPageItems>
+    <GenerateAssemblySupportedOSPlatformAttribute>false</GenerateAssemblySupportedOSPlatformAttribute>
+    <GenerateAssemblyTargetPlatformAttribute>false</GenerateAssemblyTargetPlatformAttribute>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <AssemblyName>RincoMTO</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <DefaultItemExcludes>$(DefaultItemExcludes);BIMTOOL\**</DefaultItemExcludes>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Remove="Tools\**\obj\**" />
+    <Compile Remove="Tools\**\bin\**" />
+    <Page Remove="Tools\**\obj\**" />
+    <Page Remove="Tools\**\bin\**" />
+  </ItemGroup>
+
+  <!-- Revit API references using Nice3point.Revit.Api -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2022.1.1" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2022.1.1" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
+    <DefineConstants>REVIT2022_OR_GREATER</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPI" Version="2025.0.0" />
+    <PackageReference Include="Nice3point.Revit.Api.RevitAPIUI" Version="2025.0.0" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    <DefineConstants>REVIT2022_OR_GREATER;REVIT2024_OR_GREATER;REVIT2025_OR_GREATER</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.122" />
+    <PackageReference Include="ClosedXML" Version="0.102.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\**\*.png" />
+    <Resource Include="Tools\**\*.png" />
+  </ItemGroup>
+
+  <!-- Post-build step to assemble the autoloader bundle -->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <PropertyGroup>
+      <BundleFolder>$(ProjectDir)RincoMTO.bundle</BundleFolder>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+      <VersionFolder Include="2022;2023;2024" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+      <VersionFolder Include="2025;2026" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(BundleFolder)\Contents\%(VersionFolder.Identity)" />
+    
+    <ItemGroup>
+      <MainBinaries Include="$(TargetDir)*.dll" />
+      <AddinFile Include="$(ProjectDir)RincoMTO.addin" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(MainBinaries)" DestinationFolder="$(BundleFolder)\Contents\%(VersionFolder.Identity)" />
+    <Copy SourceFiles="@(AddinFile)" DestinationFolder="$(BundleFolder)\Contents\%(VersionFolder.Identity)" />
+    
+    <!-- TÃ¡Â»Â± Ã„â€˜Ã¡Â»â„¢ng Ã„â€˜ÃƒÂ³ng gÃƒÂ³i toÃƒÂ n bÃ¡Â»â„¢ biÃ¡Â»Æ’u tÃ†Â°Ã¡Â»Â£ng nÃ¡ÂºÂ±m trong thÃ†Â° mÃ¡Â»Â¥c Tools -->
+    <MakeDir Directories="$(BundleFolder)\Contents\Resources" />
+    <MakeDir Directories="$(TargetDir)Resources" />
+    <ItemGroup>
+      <ToolIcons Include="$(ProjectDir)Tools\**\*.png" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ToolIcons)" DestinationFolder="$(BundleFolder)\Contents\Resources\" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(ToolIcons)" DestinationFolder="$(TargetDir)Resources\" SkipUnchangedFiles="true" />
+    
+    <Copy SourceFiles="$(ProjectDir)PackageContents.xml" DestinationFolder="$(BundleFolder)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
