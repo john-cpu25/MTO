@@ -41,3 +41,47 @@ C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Release\net48\R
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Release\net48\RincoMTO.pdb
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Release\net48\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.baml
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Release\net48\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.g.cs
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\RincoMTO.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\RincoMTO.pdb
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\ClosedXML.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\CommunityToolkit.Mvvm.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\DocumentFormat.OpenXml.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\ExcelNumberFormat.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\Irony.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\Microsoft.Bcl.AsyncInterfaces.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\Microsoft.Xaml.Behaviors.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\SixLabors.Fonts.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.Buffers.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.ComponentModel.Annotations.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.IO.Packaging.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.Memory.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.Numerics.Vectors.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.Runtime.CompilerServices.Unsafe.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.Text.Encodings.Web.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.Text.Json.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.Threading.Tasks.Extensions.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\System.ValueTuple.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net48\XLParser.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.csproj.AssemblyReference.cache
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\Duplicate Sheet\UI\SelectSheetsWindow.baml
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\MTO Group Bar\UI\MtoGroupBarWindow.baml
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\MTO Query\UI\MtoQueryWindow.baml
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.baml
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\Duplicate Sheet\UI\SelectSheetsWindow.g.cs
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\MTO Group Bar\UI\MtoGroupBarWindow.g.cs
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\MTO Query\UI\MtoQueryWindow.g.cs
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.g.cs
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.g.cs
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\GeneratedInternalTypeHelper.g.cs
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO_MarkupCompile.cache
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO_MarkupCompile.lref
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.baml
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.g.resources
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.AssemblyInfoInputs.cache
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.AssemblyInfo.cs
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.csproj.CoreCompileInputs.cache
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.sourcelink.json
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.csproj.Up2Date
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.dll
+C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.pdb

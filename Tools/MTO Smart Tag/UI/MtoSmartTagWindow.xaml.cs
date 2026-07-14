@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -8,7 +8,7 @@ using RincoMTO.Tools.MtoSmartTag.ViewModels;
 namespace RincoMTO.Tools.MtoSmartTag.UI
 {
     /// <summary>
-    /// Inverts a boolean value (true â†’ false, false â†’ true).
+    /// Inverts a boolean value (true → false, false → true).
     /// Used to disable direction controls when UseDirectXY is checked.
     /// </summary>
     public class InverseBoolConverter : IValueConverter

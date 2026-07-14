@@ -10,6 +10,7 @@ namespace RincoMTO.Tools.DuplicateSheet
     {
         public List<ElementId> SelectedSheetIds { get; set; } = new List<ElementId>();
         public string TargetSeries { get; set; } = string.Empty;
+        public ElementId TargetViewportTypeId { get; set; } = ElementId.InvalidElementId;
         public bool WithDetailing { get; set; } = false;
 
         public void Execute(UIApplication uiapp)
@@ -101,7 +102,26 @@ namespace RincoMTO.Tools.DuplicateSheet
                                         newView.Name = newViewName;
                                         allViewNames.Add(newViewName);
 
-                                        Viewport.Create(doc, newSheet.Id, newView.Id, vp.GetBoxCenter());
+                                        Viewport newVp = Viewport.Create(doc, newSheet.Id, newView.Id, vp.GetBoxCenter());
+                                        
+                                        ElementId originalVpTypeId = vp.GetTypeId();
+                                        
+                                        if (TargetViewportTypeId != ElementId.InvalidElementId && newView.Name.IndexOf("OVER", StringComparison.OrdinalIgnoreCase) >= 0)
+                                        {
+                                            newVp.ChangeTypeId(TargetViewportTypeId);
+                                        }
+                                        else if (originalVpTypeId != ElementId.InvalidElementId)
+                                        {
+                                            newVp.ChangeTypeId(originalVpTypeId);
+                                        }
+
+                                        try
+                                        {
+                                            newVp.LabelOffset = vp.LabelOffset;
+                                            newVp.LabelLineLength = vp.LabelLineLength;
+                                        }
+                                        catch { }
+                                        
                                         copiedViewsCount++;
 
                                         var detailItems = new FilteredElementCollector(doc, newView.Id)

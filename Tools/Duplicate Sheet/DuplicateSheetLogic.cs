@@ -67,7 +67,14 @@ namespace RincoMTO.Tools.DuplicateSheet
                     .OrderBy(val => val)
                     .ToList();
 
-                _window = new SelectSheetsWindow(allSheets, availableSeries, _handler, _exEvent);
+                var viewportTypes = new FilteredElementCollector(doc)
+                    .OfClass(typeof(ElementType))
+                    .Cast<ElementType>()
+                    .Where(e => e.FamilyName == "Viewport" || (e.Category != null && e.Category.Name == "Viewports"))
+                    .OrderBy(e => e.Name)
+                    .ToList();
+
+                _window = new SelectSheetsWindow(allSheets, availableSeries, viewportTypes, _handler, _exEvent);
                 // Set Revit as parent window
                 var hndl = uiapp.MainWindowHandle;
                 var helper = new WindowInteropHelper(_window);

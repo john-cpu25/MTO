@@ -198,9 +198,10 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
                 .OfClass(typeof(FamilySymbol))
                 .Cast<FamilySymbol>()
                 .Where(fs => fs.Category != null &&
-                             fs.Category.Id.GetIdValue() == (long)BuiltInCategory.OST_DetailComponentTags)
-                .OrderByDescending(fs => fs.FamilyName.Contains("RINCO_TAG_Reo") || fs.FamilyName.Contains("Reo Tag_Mark")) // Prioritize known tag families
-                .ThenBy(fs => fs.FamilyName)
+                             fs.Category.Id.GetIdValue() == (long)BuiltInCategory.OST_DetailComponentTags &&
+                             fs.FamilyName != null && fs.FamilyName.Contains("RINCO_TAG_Reo") &&
+                             fs.Name != null && fs.Name.Contains("Reo Tag"))
+                .OrderBy(fs => fs.FamilyName)
                 .ThenBy(fs => fs.Name)
                 .ToList();
 
@@ -224,35 +225,14 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
                     var type = _doc.GetElement(typeId) as FamilySymbol;
                     return type?.FamilyName;
                 })
-                .Where(name => !string.IsNullOrEmpty(name) && !name.ToUpper().Contains("LAPSIGHN"))
+                .Where(name => !string.IsNullOrEmpty(name) && name.ToUpper().StartsWith("REO"))
                 .Distinct()
                 .OrderBy(n => n)
                 .ToList();
 
-            // Preserve selections
-            var previouslySelected = TargetFamilies?.Where(f => f.IsSelected).Select(f => f.Name).ToList() ?? new List<string>();
-
             TargetFamilies = new ObservableCollection<TargetFamilyItem>(
-                detailFamilies.Select(f => 
-                {
-                    bool isDefaultSelected = previouslySelected.Contains(f) || (previouslySelected.Count == 0 && (f.Contains("Reinforcement_Distribution") || f.Contains("ZBar")));
-                    var item = new TargetFamilyItem(f, isDefaultSelected);
-                    item.PropertyChanged += (s, e) => 
-                    {
-                        if (e.PropertyName == nameof(TargetFamilyItem.IsSelected))
-                        {
-                            UpdateItemCount();
-                        }
-                    };
-                    return item;
-                })
+                detailFamilies.Select(f => new TargetFamilyItem(f, true))
             );
-
-            // If no default matched, select first
-            if (!TargetFamilies.Any(f => f.IsSelected) && TargetFamilies.Any())
-            {
-                TargetFamilies.First().IsSelected = true;
-            }
 
             // Count items in view (for selected families)
             UpdateItemCount();
@@ -384,6 +364,14 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
         {
             _handler.Action = "ResetColor";
             _handler.TargetFamilyNames = TargetFamilies.Where(f => f.IsSelected).Select(f => f.Name).ToList();
+            _handler.NotifyStatus = GetStatusNotifier();
+            _externalEvent.Raise();
+        }
+
+        [RelayCommand]
+        private void HideTaggedReo()
+        {
+            _handler.Action = "HideTaggedReo";
             _handler.NotifyStatus = GetStatusNotifier();
             _externalEvent.Raise();
         }

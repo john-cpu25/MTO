@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.DB;
@@ -76,6 +76,10 @@ namespace RincoMTO.Tools.MtoSmartTag
                     else if (Action == "CheckDot")
                     {
                         CheckDots(doc, view);
+                    }
+                    else if (Action == "HideTaggedReo")
+                    {
+                        HideTaggedReo(doc, view);
                     }
                     else if (Action == "HideLayer")
                     {
@@ -269,12 +273,6 @@ namespace RincoMTO.Tools.MtoSmartTag
                     continue;
                 }
 
-                // Normal mode: skip items that already have a tag
-                if (!OnlyAlreadyTagged && alreadyTagged)
-                {
-                    skippedCount++;
-                    continue;
-                }
 
                 try
                 {
@@ -327,11 +325,11 @@ namespace RincoMTO.Tools.MtoSmartTag
                         XYZ bboxCenter = bbox != null ? (bbox.Min + bbox.Max) / 2 : null;
 
                         double toMm = 304.8;
-                        debugInfo = $"\nðŸ“ Dot: ({dotPos.X * toMm:F0}, {dotPos.Y * toMm:F0})";
+                        debugInfo = $"\n🔴 Dot: ({dotPos.X * toMm:F0}, {dotPos.Y * toMm:F0})";
                         if (locPt != null)
-                            debugInfo += $"\nðŸ“Œ LocPt: ({locPt.X * toMm:F0}, {locPt.Y * toMm:F0})";
+                            debugInfo += $"\n📌 LocPt: ({locPt.X * toMm:F0}, {locPt.Y * toMm:F0})";
                         if (bboxCenter != null)
-                            debugInfo += $"\nðŸ“¦ BBox: ({bboxCenter.X * toMm:F0}, {bboxCenter.Y * toMm:F0})";
+                            debugInfo += $"\n📦 BBox: ({bboxCenter.X * toMm:F0}, {bboxCenter.Y * toMm:F0})";
                         if (bbox != null)
                             debugInfo += $"\n   Min:({bbox.Min.X * toMm:F0},{bbox.Min.Y * toMm:F0}) Max:({bbox.Max.X * toMm:F0},{bbox.Max.Y * toMm:F0})";
                     }
@@ -339,7 +337,7 @@ namespace RincoMTO.Tools.MtoSmartTag
                     // Tag position = dot position + offset
                     XYZ tagPosition = dotPos + offsetVector;
 
-                    // Create the tag â€” ALWAYS with leader first so TagHeadPosition works
+                    // Create the tag — ALWAYS with leader first so TagHeadPosition works
                     // (Without leader, Revit ignores position and snaps to element center)
                     Reference hostRef = new Reference(item);
                     IndependentTag tag = IndependentTag.Create(
@@ -374,7 +372,7 @@ namespace RincoMTO.Tools.MtoSmartTag
 
                         taggedCount++;
 
-                        // Tá»± Ä‘á»™ng táº¯t cháº¥m trÃ²n sau khi Ä‘Ã£ tag xong (chá»‰ khi KHÃ”NG á»Ÿ cháº¿ Ä‘á»™ OnlyAlreadyTagged)
+                        // Tự động tắt chấm tròn sau khi đã tag xong (chỉ khi KHÔNG ở chế độ OnlyAlreadyTagged)
                         if (!OnlyAlreadyTagged && item is FamilyInstance fi)
                         {
                             bool isAdj = fi.Symbol.FamilyName.Contains("Reinforcement_Distribution");
@@ -382,7 +380,7 @@ namespace RincoMTO.Tools.MtoSmartTag
                             Parameter visParam = fi.LookupParameter(pName);
                             if (visParam != null && !visParam.IsReadOnly)
                             {
-                                visParam.Set(0); // Táº¯t cháº¥m trÃ²n
+                                visParam.Set(0); // Tắt chấm tròn
                             }
                         }
 
@@ -403,7 +401,7 @@ namespace RincoMTO.Tools.MtoSmartTag
                             tagOverride.SetProjectionLineColor(color);
                             tagOverride.SetSurfaceForegroundPatternColor(color);
                             tagOverride.SetCutLineColor(color);
-                            // TÃ¬m Solid Fill pattern Ä‘á»ƒ tÃ´ text/annotation
+                            // Tìm Solid Fill pattern để tô text/annotation
                             var solidFill = new FilteredElementCollector(doc)
                                 .OfClass(typeof(FillPatternElement))
                                 .Cast<FillPatternElement>()
@@ -528,7 +526,7 @@ namespace RincoMTO.Tools.MtoSmartTag
                         {
                             string subName = subElem.Name.ToLower();
                             if (subName.Contains("dot") || subName.Contains("point") || subName.Contains("circle") || 
-                                subName.Contains("cháº¥m") || subName.Contains("nÃºt") || subName.Contains("node") || 
+                                subName.Contains("chấm") || subName.Contains("nút") || subName.Contains("node") || 
                                 subName.Contains("sym") || subName.Contains("mark"))
                             {
                                 if (subElem.Location is LocationPoint dotLoc)
@@ -580,7 +578,7 @@ namespace RincoMTO.Tools.MtoSmartTag
 
                     if (length > 0)
                     {
-                        string[] possibleParams = { "Dot Position", "Dot Offset", "Dot Offset X", "Offset_Dot", "DotDistance", "Dot_Distance", "Khoáº£ng cÃ¡ch cháº¥m", "Vá»‹ trÃ­ cháº¥m", "Dot Pos" };
+                        string[] possibleParams = { "Dot Position", "Dot Offset", "Dot Offset X", "Offset_Dot", "DotDistance", "Dot_Distance", "Khoáº£ng cÃ¡ch chấm", "Vá»‹ trÃ­ chấm", "Dot Pos" };
                         foreach (string pn in possibleParams)
                         {
                             Parameter pDot = fi.LookupParameter(pn);
@@ -603,6 +601,39 @@ namespace RincoMTO.Tools.MtoSmartTag
         /// </summary>
         private void ResetColorOverrides(Document doc, View view)
         {
+            // Unhide all hidden detail components in this view before resetting their colors
+            var hiddenDetailItems = new FilteredElementCollector(doc)
+                .OfCategory(BuiltInCategory.OST_DetailComponents)
+                .WhereElementIsNotElementType()
+                .Where(e => e.OwnerViewId == view.Id && e.IsHidden(view))
+                .ToList();
+
+            var elementsToUnhide = new List<ElementId>();
+            foreach (var item in hiddenDetailItems)
+            {
+                elementsToUnhide.Add(item.Id);
+                if (item is FamilyInstance fi)
+                {
+                    var subIds = fi.GetSubComponentIds();
+                    if (subIds != null)
+                    {
+                        foreach (var subId in subIds)
+                        {
+                            if (doc.GetElement(subId).IsHidden(view))
+                                elementsToUnhide.Add(subId);
+                        }
+                    }
+                }
+            }
+
+            if (elementsToUnhide.Count > 0)
+            {
+                try
+                {
+                    view.UnhideElements(elementsToUnhide);
+                }
+                catch { }
+            }
             var detailItems = new FilteredElementCollector(doc, view.Id)
                 .OfCategory(BuiltInCategory.OST_DetailComponents)
                 .WhereElementIsNotElementType()
@@ -779,7 +810,7 @@ namespace RincoMTO.Tools.MtoSmartTag
 
         private bool IsHorizontal(double angleDeg)
         {
-            // 0Â° Â± 15Â° or 180Â° Â± 15Â°
+            // 0° ± 15° or 180° ± 15°
             double tolerance = 15;
             return (angleDeg <= tolerance || angleDeg >= 360 - tolerance) ||
                    (Math.Abs(angleDeg - 180) <= tolerance);
@@ -787,7 +818,7 @@ namespace RincoMTO.Tools.MtoSmartTag
 
         private bool IsVertical(double angleDeg)
         {
-            // 90Â° Â± 15Â° or 270Â° Â± 15Â°
+            // 90° ± 15° or 270° ± 15°
             double tolerance = 15;
             return (Math.Abs(angleDeg - 90) <= tolerance) ||
                    (Math.Abs(angleDeg - 270) <= tolerance);
@@ -986,6 +1017,62 @@ namespace RincoMTO.Tools.MtoSmartTag
                     return new XYZ(diag, -diag, 0);
                 default:
                     return new XYZ(0, distance, 0);
+            }
+        }
+
+        private void HideTaggedReo(Document doc, View view)
+        {
+            var existingTags = new FilteredElementCollector(doc, view.Id)
+                .OfClass(typeof(IndependentTag))
+                .Cast<IndependentTag>()
+                .ToList();
+
+            var elementsToHide = new HashSet<ElementId>();
+
+            foreach (var tag in existingTags)
+            {
+                var type = doc.GetElement(tag.GetTypeId()) as FamilySymbol;
+                if (type != null && ((type.FamilyName != null && type.FamilyName.Contains("Reo")) || (type.Name != null && type.Name.Contains("Reo Tag"))))
+                {
+#if REVIT2022_OR_GREATER
+                    foreach (var id in tag.GetTaggedLocalElementIds())
+#else
+                    foreach (var id in new List<ElementId> { tag.TaggedLocalElementId })
+#endif
+                    {
+                        elementsToHide.Add(id);
+                        
+                        var elem = doc.GetElement(id);
+                        if (elem is FamilyInstance fi)
+                        {
+                            var subIds = fi.GetSubComponentIds();
+                            if (subIds != null)
+                            {
+                                foreach (var subId in subIds)
+                                {
+                                    elementsToHide.Add(subId);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (elementsToHide.Count > 0)
+            {
+                try
+                {
+                    view.HideElements(elementsToHide);
+                    NotifyStatus?.Invoke($"Hidden {elementsToHide.Count} elements tagged with 'Reo Tag'.");
+                }
+                catch (Exception ex)
+                {
+                    NotifyStatus?.Invoke($"Error hiding elements: {ex.Message}");
+                }
+            }
+            else
+            {
+                NotifyStatus?.Invoke("No elements tagged with 'Reo Tag' found.");
             }
         }
 
