@@ -1,4 +1,4 @@
-﻿﻿using System;
+using System;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
@@ -28,26 +28,48 @@ namespace RincoMTO.Tools.MtoSmartTag.UI
     public partial class MtoSmartTagWindow : Window
     {
         private MtoSmartTagViewModel _viewModel;
+        private UIApplication _uiApp;
 
         public MtoSmartTagWindow(UIDocument uidoc)
         {
             // Ensure WPF Application exists (required for XAML resource loading in Revit)
-
             if (System.Windows.Application.Current == null)
-
             {
-
                 new System.Windows.Application();
-
+            }
+            
+            if (System.Windows.Application.Current != null)
+            {
+                System.Windows.Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             }
 
-
             InitializeComponent();
+
+            _uiApp = new UIApplication(uidoc.Document.Application);
+            _uiApp.ViewActivated += UiApp_ViewActivated;
+            
+            this.Closed += (s, e) => 
+            {
+                try
+                {
+                    _uiApp.ViewActivated -= UiApp_ViewActivated;
+                    _viewModel?.Dispose();
+                }
+                catch { }
+            };
 
             var handler = new MtoSmartTagHandler();
             _viewModel = new MtoSmartTagViewModel(uidoc.Document, uidoc.Document.ActiveView, handler);
 
             DataContext = _viewModel;
+        }
+
+        private void UiApp_ViewActivated(object sender, Autodesk.Revit.UI.Events.ViewActivatedEventArgs e)
+        {
+            if (e.CurrentActiveView != null && _viewModel != null)
+            {
+                _viewModel.UpdateDocumentAndView(e.Document, e.CurrentActiveView);
+            }
         }
 
         /// <summary>

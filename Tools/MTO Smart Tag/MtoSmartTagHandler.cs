@@ -34,6 +34,7 @@ namespace RincoMTO.Tools.MtoSmartTag
         public bool OnlyAlreadyTagged { get; set; } = false;
         public bool OnlyUntagged { get; set; } = false;
         public bool ApplyColorOverride { get; set; } = false;
+        public bool OverrideRebarColor { get; set; } = true;
         public byte ColorR { get; set; } = 255;
         public byte ColorG { get; set; } = 0;
         public byte ColorB { get; set; } = 0;
@@ -389,12 +390,15 @@ namespace RincoMTO.Tools.MtoSmartTag
                         {
                             var color = new Color(ColorR, ColorG, ColorB);
                             
-                            // Override cho thÃ©p
-                            var itemOverride = new OverrideGraphicSettings();
-                            itemOverride.SetProjectionLineColor(color);
-                            itemOverride.SetSurfaceForegroundPatternColor(color);
-                            itemOverride.SetCutLineColor(color);
-                            view.SetElementOverrides(item.Id, itemOverride);
+                            if (OverrideRebarColor)
+                            {
+                                // Override cho thép
+                                var itemOverride = new OverrideGraphicSettings();
+                                itemOverride.SetProjectionLineColor(color);
+                                itemOverride.SetSurfaceForegroundPatternColor(color);
+                                itemOverride.SetCutLineColor(color);
+                                view.SetElementOverrides(item.Id, itemOverride);
+                            }
                             
                             // Override cho tag (annotation)
                             var tagOverride = new OverrideGraphicSettings();

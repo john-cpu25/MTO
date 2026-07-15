@@ -259,14 +259,16 @@
                 <StackPanel Margin="0,0,0,14">
                     <TextBlock Text="TAG OPTION" Style="{StaticResource SectionHeader}"/>
                     <CheckBox IsChecked="{Binding AddLeader}" Content="Add Leader" VerticalContentAlignment="Center" Margin="0,0,0,6"/>
-                    <CheckBox IsChecked="{Binding OnlyAlreadyTagged}" Content="Only tag already tagged items" VerticalContentAlignment="Center" Foreground="#374151" Margin="0,0,0,6"/>
-                    <CheckBox IsChecked="{Binding OnlyUntagged}" Content="Only tag untagged items" VerticalContentAlignment="Center" Foreground="#374151"/>
+                    <RadioButton IsChecked="{Binding OnlyAlreadyTagged}" Content="Only tag already tagged items" VerticalContentAlignment="Center" Foreground="#374151" Margin="0,0,0,6"/>
+                    <RadioButton IsChecked="{Binding OnlyUntagged}" Content="Only tag untagged items" VerticalContentAlignment="Center" Foreground="#374151"/>
                 </StackPanel>
 
-                <!-- Color Override (always on) -->
+                <!-- Color Override -->
                 <StackPanel Margin="0,0,0,14">
                     <TextBlock Text="OVERRIDE COLOR" Style="{StaticResource SectionHeader}"/>
-                    <StackPanel Orientation="Horizontal">
+                    <CheckBox IsChecked="{Binding ApplyColorOverride}" Content="Enable Color Override" VerticalContentAlignment="Center" Margin="0,0,0,6"/>
+                    <CheckBox IsChecked="{Binding OverrideRebarColor}" Content="Override Rebar Color (thép)" VerticalContentAlignment="Center" Margin="0,0,0,8" IsEnabled="{Binding ApplyColorOverride}"/>
+                    <StackPanel Orientation="Horizontal" IsEnabled="{Binding ApplyColorOverride}">
                         <Button Click="PickColor_Click" Cursor="Hand" Margin="0,0,10,0">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">

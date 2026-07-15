@@ -60,8 +60,18 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
         [ObservableProperty]
         private TagTypeItem _selectedTagType;
 
+        public void Dispose()
+        {
+            if (_externalEvent != null)
+            {
+                _externalEvent.Dispose();
+                _externalEvent = null;
+            }
+        }
+
         // Target Families (which families to tag/layer)
-        public ObservableCollection<TargetFamilyItem> TargetFamilies { get; set; }
+        [ObservableProperty]
+        private ObservableCollection<TargetFamilyItem> _targetFamilies;
 
         // Direction Options
         public ObservableCollection<DirectionItem> Directions { get; set; }
@@ -89,14 +99,33 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
 
         // Only tag items that already have a tag
         [ObservableProperty]
-        private bool _onlyAlreadyTagged = false;
+        private bool _onlyAlreadyTagged = true;
+
+        partial void OnOnlyAlreadyTaggedChanged(bool value)
+        {
+            if (value && OnlyUntagged)
+            {
+                OnlyUntagged = false;
+            }
+        }
         
         [ObservableProperty]
         private bool _onlyUntagged = false;
 
+        partial void OnOnlyUntaggedChanged(bool value)
+        {
+            if (value && OnlyAlreadyTagged)
+            {
+                OnlyAlreadyTagged = false;
+            }
+        }
+
         // Color Override
         [ObservableProperty]
         private bool _applyColorOverride = true;
+
+        [ObservableProperty]
+        private bool _overrideRebarColor = true;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(PreviewBrush))]
@@ -164,8 +193,8 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
         [ObservableProperty]
         private string _itemCountInfo;
 
-        private readonly Document _doc;
-        private readonly View _activeView;
+        private Document _doc;
+        private View _activeView;
 
         public MtoSmartTagViewModel(Document doc, View activeView, MtoSmartTagHandler handler)
         {
@@ -188,6 +217,13 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
             };
             SelectedDirection = Directions.First(); // Default: TopLeft
 
+            LoadData();
+        }
+
+        public void UpdateDocumentAndView(Document doc, View activeView)
+        {
+            _doc = doc;
+            _activeView = activeView;
             LoadData();
         }
 
@@ -215,24 +251,32 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
             else
                 SelectedTagType = TagTypes.FirstOrDefault();
 
-            // Find distinct Detail Item families in the view (for target family selection)
-            var detailFamilies = new FilteredElementCollector(_doc, _activeView.Id)
-                .OfCategory(BuiltInCategory.OST_DetailComponents)
-                .WhereElementIsNotElementType()
-                .Select(e =>
-                {
-                    var typeId = e.GetTypeId();
-                    var type = _doc.GetElement(typeId) as FamilySymbol;
-                    return type?.FamilyName;
-                })
-                .Where(name => !string.IsNullOrEmpty(name) && name.ToUpper().StartsWith("REO"))
-                .Distinct()
-                .OrderBy(n => n)
-                .ToList();
+            try
+            {
+                var detailFamilies = new FilteredElementCollector(_doc, _activeView.Id)
+                    .OfCategory(BuiltInCategory.OST_DetailComponents)
+                    .WhereElementIsNotElementType()
+                    .Select(e =>
+                    {
+                        var typeId = e.GetTypeId();
+                        var type = _doc.GetElement(typeId) as FamilySymbol;
+                        return type?.FamilyName;
+                    })
+                    .Where(name => !string.IsNullOrEmpty(name) && name.ToUpper().StartsWith("REO"))
+                    .Distinct()
+                    .OrderBy(n => n)
+                    .ToList();
 
-            TargetFamilies = new ObservableCollection<TargetFamilyItem>(
-                detailFamilies.Select(f => new TargetFamilyItem(f, true))
-            );
+                var previousSelections = TargetFamilies?.ToDictionary(f => f.Name, f => f.IsSelected) ?? new Dictionary<string, bool>();
+
+                TargetFamilies = new ObservableCollection<TargetFamilyItem>(
+                    detailFamilies.Select(f => new TargetFamilyItem(f, previousSelections.ContainsKey(f) ? previousSelections[f] : true))
+                );
+            }
+            catch
+            {
+                TargetFamilies = new ObservableCollection<TargetFamilyItem>();
+            }
 
             // Count items in view (for selected families)
             UpdateItemCount();
@@ -241,46 +285,11 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
         [RelayCommand]
         private void ReloadView()
         {
-            // Reset state to mimic reopening the tool
-            SelectedTagType = null;
-            TargetFamilies = null;
-            if (Directions != null && Directions.Any())
-            {
-                SelectedDirection = Directions.First();
-            }
-
-            OffsetDistance = 300;
-            OffsetX = 0;
-            OffsetY = 0;
-            UseDirectXY = false;
-            AddLeader = false;
-            OnlyAlreadyTagged = false;
-            OnlyUntagged = false;
-
-            ApplyColorOverride = true;
-            ColorR = 255;
-            ColorG = 0;
-            ColorB = 0;
-
-            CenterDotAdjustable = true;
-            HideDotAdjustable = false;
-            ShowDotAdjustable = false;
-
-            CenterDotZBar = true;
-            HideDotZBar = false;
-            ShowDotZBar = false;
-
-            UntaggedColorR = 255;
-            UntaggedColorG = 0;
-            UntaggedColorB = 255;
-            
-            ColorUntaggedItems = true;
-            IgnoreTagCheck = false;
-
             LoadData();
             StatusMessage = "View reloaded. Data refreshed.";
         }
 
+        [RelayCommand]
         private void UpdateItemCount()
         {
             var selectedFamilies = TargetFamilies?.Where(f => f.IsSelected).Select(f => f.Name).ToList() ?? new List<string>();
@@ -291,16 +300,24 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
                 return;
             }
 
-            int count = new FilteredElementCollector(_doc, _activeView.Id)
-                .OfCategory(BuiltInCategory.OST_DetailComponents)
-                .WhereElementIsNotElementType()
-                .Where(e =>
-                {
-                    var typeId = e.GetTypeId();
-                    var type = _doc.GetElement(typeId) as FamilySymbol;
-                    return type?.FamilyName != null && selectedFamilies.Contains(type.FamilyName);
-                })
-                .Count();
+            int count = 0;
+            try
+            {
+                count = new FilteredElementCollector(_doc, _activeView.Id)
+                    .OfCategory(BuiltInCategory.OST_DetailComponents)
+                    .WhereElementIsNotElementType()
+                    .Where(e =>
+                    {
+                        var typeId = e.GetTypeId();
+                        var type = _doc.GetElement(typeId) as FamilySymbol;
+                        return type?.FamilyName != null && selectedFamilies.Contains(type.FamilyName);
+                    })
+                    .Count();
+            }
+            catch
+            {
+                count = 0;
+            }
 
             ItemCountInfo = $"Found {count} items for selected families in current view";
         }
@@ -331,6 +348,12 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
                 return;
             }
 
+            if (TargetFamilies == null || !TargetFamilies.Any(f => f.IsSelected))
+            {
+                StatusMessage = "No target families found in current view.";
+                return;
+            }
+
             _handler.Action = "TagAll";
             _handler.TargetFamilyNames = TargetFamilies.Where(f => f.IsSelected).Select(f => f.Name).ToList();
             _handler.SelectedTagTypeId = SelectedTagType.Id;
@@ -343,6 +366,7 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
             _handler.OnlyAlreadyTagged = OnlyAlreadyTagged;
             _handler.OnlyUntagged = OnlyUntagged;
             _handler.ApplyColorOverride = ApplyColorOverride;
+            _handler.OverrideRebarColor = OverrideRebarColor;
             _handler.ColorR = ColorR;
             _handler.ColorG = ColorG;
             _handler.ColorB = ColorB;
