@@ -642,7 +642,8 @@ namespace RincoMTO.Tools.MtoSmartTag
                     {
                         foreach (var subId in subIds)
                         {
-                            if (doc.GetElement(subId).IsHidden(view))
+                            var subElem = doc.GetElement(subId);
+                            if (subElem != null && subElem.IsHidden(view))
                                 elementsToUnhide.Add(subId);
                         }
                     }
