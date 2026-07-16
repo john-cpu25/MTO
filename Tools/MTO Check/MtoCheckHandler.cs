@@ -181,7 +181,6 @@ namespace RincoMTO.Tools.MtoCheck
                                     Description = $"Bị thay đổi thông số: {string.Join(", ", changedParams)}"
                                 });
                             }
-                        }
                     }
                 }
             }
