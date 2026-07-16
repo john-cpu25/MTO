@@ -55,43 +55,53 @@ namespace RincoMTO.Tools.MtoCheck
             // Collect Detail Items in Target View
             var targetItems = GetDetailItems(doc, TargetView);
 
-            // Dictionary for target items by Unique ID (parameter)
-            var targetByUniqueIdParam = new Dictionary<string, FamilyInstance>();
-            foreach (var item in targetItems)
+            string GetTrackingUniqueId(FamilyInstance fi)
             {
-                var uniqueIdParam = item.LookupParameter("Unique ID");
-                if (uniqueIdParam != null && uniqueIdParam.HasValue)
-                {
-                    string val = uniqueIdParam.AsString();
-                    if (!string.IsNullOrEmpty(val) && !targetByUniqueIdParam.ContainsKey(val))
-                    {
-                        targetByUniqueIdParam[val] = item;
-                    }
-                }
+                string p = fi.LookupParameter("Unique ID")?.AsString();
+                return !string.IsNullOrEmpty(p) ? p : fi.UniqueId;
             }
 
-            // Dictionary for target items by Element ID (parameter)
-            var targetByElementIdParam = new Dictionary<string, FamilyInstance>();
+            string GetTrackingElementId(FamilyInstance fi)
+            {
+                string p = fi.LookupParameter("Element ID")?.AsString();
+#if REVIT2024_OR_GREATER
+                return !string.IsNullOrEmpty(p) ? p : fi.Id.Value.ToString();
+#else
+                return !string.IsNullOrEmpty(p) ? p : fi.Id.IntegerValue.ToString();
+#endif
+            }
+
+            // Dictionary for target items
+            var targetByUniqueId = new Dictionary<string, FamilyInstance>();
+            var targetByElementId = new Dictionary<string, FamilyInstance>();
             foreach (var item in targetItems)
             {
-                var elemIdParam = item.LookupParameter("Element ID");
-                if (elemIdParam != null && elemIdParam.HasValue)
-                {
-                    string val = elemIdParam.AsString();
-                    if (!string.IsNullOrEmpty(val) && !targetByElementIdParam.ContainsKey(val))
-                    {
-                        targetByElementIdParam[val] = item;
-                    }
-                }
+                string uId = GetTrackingUniqueId(item);
+                if (!targetByUniqueId.ContainsKey(uId)) targetByUniqueId[uId] = item;
+
+                string eId = GetTrackingElementId(item);
+                if (!targetByElementId.ContainsKey(eId)) targetByElementId[eId] = item;
+            }
+
+            // Dictionary for source items
+            var sourceByUniqueId = new Dictionary<string, FamilyInstance>();
+            var sourceByElementId = new Dictionary<string, FamilyInstance>();
+            foreach (var item in sourceItems)
+            {
+                string uId = GetTrackingUniqueId(item);
+                if (!sourceByUniqueId.ContainsKey(uId)) sourceByUniqueId[uId] = item;
+
+                string eId = GetTrackingElementId(item);
+                if (!sourceByElementId.ContainsKey(eId)) sourceByElementId[eId] = item;
             }
 
             // 1. Check for MISSING items in Target View (Exist in Source, not in Target)
             foreach (var sItem in sourceItems)
             {
-                string sUniqueId = sItem.UniqueId;
-                string sElemId = sItem.Id.ToString();
+                string sUniqueId = GetTrackingUniqueId(sItem);
+                string sElemId = GetTrackingElementId(sItem);
 
-                bool found = targetByUniqueIdParam.ContainsKey(sUniqueId) || targetByElementIdParam.ContainsKey(sElemId);
+                bool found = targetByUniqueId.ContainsKey(sUniqueId) || targetByElementId.ContainsKey(sElemId);
                 if (!found)
                 {
                     Discrepancies.Add(new CheckResultItem
@@ -105,47 +115,33 @@ namespace RincoMTO.Tools.MtoCheck
             }
 
             // 2. Check for EXTRA items in Target View (Exist in Target, but parameter points to a non-existent Source item)
-            var sourceIds = new HashSet<string>(sourceItems.Select(s => s.Id.ToString()));
-            var sourceUniqueIds = new HashSet<string>(sourceItems.Select(s => s.UniqueId));
-
             foreach (var tItem in targetItems)
             {
-                var uniqueIdParam = tItem.LookupParameter("Unique ID");
-                var elemIdParam = tItem.LookupParameter("Element ID");
+                string tUniqueId = GetTrackingUniqueId(tItem);
+                string tElemId = GetTrackingElementId(tItem);
 
-                string tUniqueIdVal = uniqueIdParam?.AsString();
-                string tElemIdVal = elemIdParam?.AsString();
+                bool sourceExists = sourceByUniqueId.ContainsKey(tUniqueId) || sourceByElementId.ContainsKey(tElemId);
 
-                bool hasTrackingParams = !string.IsNullOrEmpty(tUniqueIdVal) || !string.IsNullOrEmpty(tElemIdVal);
-
-                if (hasTrackingParams)
+                if (!sourceExists)
                 {
-                    bool sourceExists = false;
-                    if (!string.IsNullOrEmpty(tUniqueIdVal) && sourceUniqueIds.Contains(tUniqueIdVal)) sourceExists = true;
-                    if (!string.IsNullOrEmpty(tElemIdVal) && sourceIds.Contains(tElemIdVal)) sourceExists = true;
-
-                    if (!sourceExists)
+                    Discrepancies.Add(new CheckResultItem
                     {
-                        Discrepancies.Add(new CheckResultItem
-                        {
-                            IssueType = "Extra in Target (Orphaned)",
-                            ElementId = tItem.Id.ToString(),
-                            FamilyName = tItem.Symbol.FamilyName,
-                            Description = $"Thép dư thừa ở bản sao (Bản gốc đã bị xoá Element ID: {tElemIdVal})"
-                        });
-                    }
-                    else
-                    {
-                        // Compare parameters if it exists in source
-                        FamilyInstance sItem = null;
-                        if (!string.IsNullOrEmpty(tUniqueIdVal)) 
-                            sItem = sourceItems.FirstOrDefault(s => s.UniqueId == tUniqueIdVal);
-                        else if (!string.IsNullOrEmpty(tElemIdVal)) 
-                            sItem = sourceItems.FirstOrDefault(s => s.Id.ToString() == tElemIdVal);
+                        IssueType = "Extra in Target (Orphaned)",
+                        ElementId = tElemId,
+                        FamilyName = tItem.Symbol.FamilyName,
+                        Description = $"Thép dư thừa ở bản sao (Không có ở bản gốc Element ID: {tElemId})"
+                    });
+                }
+                else
+                {
+                    // Compare parameters if it exists in source
+                    FamilyInstance sItem = null;
+                    if (sourceByUniqueId.ContainsKey(tUniqueId)) sItem = sourceByUniqueId[tUniqueId];
+                    else if (sourceByElementId.ContainsKey(tElemId)) sItem = sourceByElementId[tElemId];
 
-                        if (sItem != null)
-                        {
-                            List<string> changedParams = new List<string>();
+                    if (sItem != null)
+                    {
+                        List<string> changedParams = new List<string>();
                             foreach (Parameter tParam in tItem.Parameters)
                             {
                                 if (tParam.IsReadOnly) continue;
