@@ -209,7 +209,8 @@ namespace RincoMTO.Tools.MtoCheck
                             .OfClass(typeof(FamilyInstance))
                             .OfCategory(BuiltInCategory.OST_DetailComponents)
                             .WhereElementIsNotElementType()
-                            .Cast<FamilyInstance>());
+                            .Cast<FamilyInstance>()
+                            .Where(fi => fi.Symbol != null && fi.Symbol.FamilyName.Contains("Reo__Reinforcement")));
                     }
                 }
                 
@@ -218,7 +219,8 @@ namespace RincoMTO.Tools.MtoCheck
                     .OfClass(typeof(FamilyInstance))
                     .OfCategory(BuiltInCategory.OST_DetailComponents)
                     .WhereElementIsNotElementType()
-                    .Cast<FamilyInstance>());
+                    .Cast<FamilyInstance>()
+                    .Where(fi => fi.Symbol != null && fi.Symbol.FamilyName.Contains("Reo__Reinforcement")));
             }
             else
             {
@@ -226,7 +228,8 @@ namespace RincoMTO.Tools.MtoCheck
                     .OfClass(typeof(FamilyInstance))
                     .OfCategory(BuiltInCategory.OST_DetailComponents)
                     .WhereElementIsNotElementType()
-                    .Cast<FamilyInstance>());
+                    .Cast<FamilyInstance>()
+                    .Where(fi => fi.Symbol != null && fi.Symbol.FamilyName.Contains("Reo__Reinforcement")));
             }
             return items;
         }
