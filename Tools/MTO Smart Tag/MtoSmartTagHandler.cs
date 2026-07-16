@@ -41,6 +41,7 @@ namespace RincoMTO.Tools.MtoSmartTag
         public string LayerDirection { get; set; } // "X" or "Y"
         public ElementId SelectedTagTypeId { get; set; }
         public Action<string> NotifyStatus { get; set; }
+        public Action<Document, View> OnReloadData { get; set; }
 
         // Untagged Items Settings
         public bool CenterDotAdjustable { get; set; } = true;
@@ -66,7 +67,11 @@ namespace RincoMTO.Tools.MtoSmartTag
 
                 try
                 {
-                    if (Action == "TagAll")
+                    if (Action == "ReloadData")
+                    {
+                        OnReloadData?.Invoke(doc, view);
+                    }
+                    else if (Action == "TagAll")
                     {
                         TagAllReinforcementDistributions(doc, view);
                     }

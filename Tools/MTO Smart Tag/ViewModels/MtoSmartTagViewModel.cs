@@ -195,6 +195,7 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
 
         private Document _doc;
         private View _activeView;
+        private Dictionary<string, int> _familyCounts = new Dictionary<string, int>();
 
         public MtoSmartTagViewModel(Document doc, View activeView, MtoSmartTagHandler handler)
         {
@@ -224,62 +225,81 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
         {
             _doc = doc;
             _activeView = activeView;
-            LoadData();
+            // Removed LoadData() to disable auto-reload on view switch
         }
 
         private void LoadData()
         {
-            // Find Detail Item Tag families
-            var tagFamilies = new FilteredElementCollector(_doc)
-                .OfClass(typeof(FamilySymbol))
-                .Cast<FamilySymbol>()
-                .Where(fs => fs.Category != null &&
-                             fs.Category.Id.GetIdValue() == (long)BuiltInCategory.OST_DetailComponentTags &&
-                             fs.FamilyName != null && fs.FamilyName.Contains("RINCO_TAG_Reo") &&
-                             fs.Name != null && fs.Name.Contains("Reo Tag"))
-                .OrderBy(fs => fs.FamilyName)
-                .ThenBy(fs => fs.Name)
-                .ToList();
-
-            // Preserve selected tag type if possible
-            ElementId currentSelectedTagId = SelectedTagType?.Id;
-
-            TagTypes = new ObservableCollection<TagTypeItem>(tagFamilies.Select(fs => new TagTypeItem(fs)));
-            
-            if (currentSelectedTagId != null)
-                SelectedTagType = TagTypes.FirstOrDefault(t => t.Id == currentSelectedTagId) ?? TagTypes.FirstOrDefault();
-            else
-                SelectedTagType = TagTypes.FirstOrDefault();
-
-            try
+            // Execute the load on Revit API thread via ExternalEvent
+            _handler.Action = "ReloadData";
+            _handler.OnReloadData = (doc, view) =>
             {
-                var detailFamilies = new FilteredElementCollector(_doc, _activeView.Id)
-                    .OfCategory(BuiltInCategory.OST_DetailComponents)
-                    .WhereElementIsNotElementType()
-                    .Select(e =>
-                    {
-                        var typeId = e.GetTypeId();
-                        var type = _doc.GetElement(typeId) as FamilySymbol;
-                        return type?.FamilyName;
-                    })
-                    .Where(name => !string.IsNullOrEmpty(name) && name.ToUpper().StartsWith("REO"))
-                    .Distinct()
-                    .OrderBy(n => n)
+                _doc = doc;
+                _activeView = view;
+                
+                // Find Detail Item Tag families
+                var tagFamilies = new FilteredElementCollector(_doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .Cast<FamilySymbol>()
+                    .Where(fs => fs.Category != null &&
+                                 fs.Category.Id.GetIdValue() == (long)BuiltInCategory.OST_DetailComponentTags &&
+                                 fs.FamilyName != null && fs.FamilyName.Contains("RINCO_TAG_Reo") &&
+                                 fs.Name != null && fs.Name.Contains("Reo Tag"))
+                    .OrderBy(fs => fs.FamilyName)
+                    .ThenBy(fs => fs.Name)
                     .ToList();
 
-                var previousSelections = TargetFamilies?.ToDictionary(f => f.Name, f => f.IsSelected) ?? new Dictionary<string, bool>();
+                var newTagTypes = new ObservableCollection<TagTypeItem>(tagFamilies.Select(fs => new TagTypeItem(fs)));
+                
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    ElementId currentSelectedTagId = SelectedTagType?.Id;
+                    TagTypes = newTagTypes;
+                    if (currentSelectedTagId != null)
+                        SelectedTagType = TagTypes.FirstOrDefault(t => t.Id == currentSelectedTagId) ?? TagTypes.FirstOrDefault();
+                    else
+                        SelectedTagType = TagTypes.FirstOrDefault();
+                });
 
-                TargetFamilies = new ObservableCollection<TargetFamilyItem>(
-                    detailFamilies.Select(f => new TargetFamilyItem(f, previousSelections.ContainsKey(f) ? previousSelections[f] : true))
-                );
-            }
-            catch
-            {
-                TargetFamilies = new ObservableCollection<TargetFamilyItem>();
-            }
+                try
+                {
+                    var detailInstances = new FilteredElementCollector(_doc, _activeView.Id)
+                        .OfCategory(BuiltInCategory.OST_DetailComponents)
+                        .WhereElementIsNotElementType()
+                        .Select(e =>
+                        {
+                            var typeId = e.GetTypeId();
+                            var type = _doc.GetElement(typeId) as FamilySymbol;
+                            return type?.FamilyName;
+                        })
+                        .Where(name => !string.IsNullOrEmpty(name) && name.ToUpper().StartsWith("REO"))
+                        .ToList();
 
-            // Count items in view (for selected families)
-            UpdateItemCount();
+                    var grouped = detailInstances.GroupBy(n => n).ToDictionary(g => g.Key, g => g.Count());
+                    _familyCounts = grouped;
+                    
+                    var distinctNames = grouped.Keys.OrderBy(n => n).ToList();
+
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        var previousSelections = TargetFamilies?.ToDictionary(f => f.Name, f => f.IsSelected) ?? new Dictionary<string, bool>();
+                        TargetFamilies = new ObservableCollection<TargetFamilyItem>(
+                            distinctNames.Select(f => new TargetFamilyItem(f, previousSelections.ContainsKey(f) ? previousSelections[f] : true))
+                        );
+                        UpdateItemCount();
+                    });
+                }
+                catch
+                {
+                    _familyCounts = new Dictionary<string, int>();
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        TargetFamilies = new ObservableCollection<TargetFamilyItem>();
+                        UpdateItemCount();
+                    });
+                }
+            };
+            _externalEvent.Raise();
         }
 
         [RelayCommand]
@@ -301,22 +321,12 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
             }
 
             int count = 0;
-            try
+            foreach (var fam in selectedFamilies)
             {
-                count = new FilteredElementCollector(_doc, _activeView.Id)
-                    .OfCategory(BuiltInCategory.OST_DetailComponents)
-                    .WhereElementIsNotElementType()
-                    .Where(e =>
-                    {
-                        var typeId = e.GetTypeId();
-                        var type = _doc.GetElement(typeId) as FamilySymbol;
-                        return type?.FamilyName != null && selectedFamilies.Contains(type.FamilyName);
-                    })
-                    .Count();
-            }
-            catch
-            {
-                count = 0;
+                if (_familyCounts.TryGetValue(fam, out int c))
+                {
+                    count += c;
+                }
             }
 
             ItemCountInfo = $"Found {count} items for selected families in current view";

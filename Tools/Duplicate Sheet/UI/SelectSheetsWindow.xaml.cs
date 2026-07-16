@@ -16,7 +16,7 @@ namespace RincoMTO.Tools.DuplicateSheet.UI
         private DuplicateSheetEventHandler _handler;
         private Autodesk.Revit.UI.ExternalEvent _exEvent;
 
-        public SelectSheetsWindow(IEnumerable<ViewSheet> availableSheets, List<string> availableSeries, List<ElementType> viewportTypes, DuplicateSheetEventHandler handler, Autodesk.Revit.UI.ExternalEvent exEvent)
+        public SelectSheetsWindow(IEnumerable<ViewSheet> availableSheets, List<string> availableSeries, List<ElementType> viewportTypes, List<ViewFamilyType> viewTypes, DuplicateSheetEventHandler handler, Autodesk.Revit.UI.ExternalEvent exEvent)
         {
             InitializeComponent();
             
@@ -48,6 +48,29 @@ namespace RincoMTO.Tools.DuplicateSheet.UI
             else if (viewportTypes.Count > 0)
             {
                 cboViewportType.SelectedIndex = 0;
+            }
+
+            var viewTypeWrappers = new List<ViewTypeWrapper>();
+            viewTypeWrappers.Add(new ViewTypeWrapper { Id = ElementId.InvalidElementId, DisplayName = "<None>" });
+            
+            foreach (var vt in viewTypes.OrderBy(v => v.FamilyName).ThenBy(v => v.Name))
+            {
+                viewTypeWrappers.Add(new ViewTypeWrapper { Id = vt.Id, Name = vt.Name, DisplayName = $"{vt.FamilyName} : {vt.Name}" });
+            }
+
+            cboViewType.ItemsSource = viewTypeWrappers;
+            cboViewType.DisplayMemberPath = "DisplayName";
+            cboViewType.SelectedValuePath = "Id";
+            
+            // Look for an existing type named MTO or just set text to MTO
+            var defaultMto = viewTypeWrappers.FirstOrDefault(v => v.Name != null && v.Name.Equals("MTO", System.StringComparison.OrdinalIgnoreCase));
+            if (defaultMto != null)
+            {
+                cboViewType.SelectedValue = defaultMto.Id;
+            }
+            else
+            {
+                cboViewType.Text = "MTO";
             }
         }
 
@@ -88,6 +111,36 @@ namespace RincoMTO.Tools.DuplicateSheet.UI
             else
             {
                 _handler.TargetViewportTypeId = ElementId.InvalidElementId;
+            }
+
+            if (cboViewType.SelectedValue is ElementId viewTypeId && viewTypeId != ElementId.InvalidElementId)
+            {
+                _handler.TargetViewTypeId = viewTypeId;
+                _handler.TargetViewTypeName = string.Empty;
+            }
+            else
+            {
+                _handler.TargetViewTypeId = ElementId.InvalidElementId;
+                string typedText = cboViewType.Text;
+                if (!string.IsNullOrWhiteSpace(typedText) && typedText != "<None>")
+                {
+                    var wrappers = cboViewType.ItemsSource as List<ViewTypeWrapper>;
+                    var match = wrappers?.FirstOrDefault(w => w.DisplayName.Equals(typedText, System.StringComparison.OrdinalIgnoreCase) || (w.Name != null && w.Name.Equals(typedText, System.StringComparison.OrdinalIgnoreCase)));
+                    
+                    if (match != null && match.Id != ElementId.InvalidElementId)
+                    {
+                        _handler.TargetViewTypeId = match.Id;
+                        _handler.TargetViewTypeName = string.Empty;
+                    }
+                    else
+                    {
+                        _handler.TargetViewTypeName = typedText.Trim();
+                    }
+                }
+                else
+                {
+                    _handler.TargetViewTypeName = string.Empty;
+                }
             }
 
             _exEvent.Raise();
@@ -193,5 +246,12 @@ namespace RincoMTO.Tools.DuplicateSheet.UI
         {
             Sheet = sheet;
         }
+    }
+
+    public class ViewTypeWrapper
+    {
+        public ElementId Id { get; set; }
+        public string Name { get; set; }
+        public string DisplayName { get; set; }
     }
 }

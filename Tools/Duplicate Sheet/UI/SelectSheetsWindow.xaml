@@ -71,7 +71,10 @@
                     <ComboBox x:Name="cboSheetSeries" IsEditable="True" ToolTip="Select or type a new Sheet Series" Height="25" Margin="0,0,0,15"/>
 
                     <TextBlock Text="Viewport Type (for duplicated views):" FontWeight="Bold" Margin="0,0,0,5"/>
-                    <ComboBox x:Name="cboViewportType" ToolTip="Select the viewport type to apply to newly created views" Height="25"/>
+                    <ComboBox x:Name="cboViewportType" ToolTip="Select the viewport type to apply to newly created views" Height="25" Margin="0,0,0,15"/>
+
+                    <TextBlock Text="View Type (for duplicated views):" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <ComboBox x:Name="cboViewType" IsEditable="True" ToolTip="Select or type a new view type" Height="25"/>
                 </StackPanel>
             </TabItem>
         </TabControl>

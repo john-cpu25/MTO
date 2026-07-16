@@ -11,6 +11,8 @@ namespace RincoMTO.Tools.DuplicateSheet
         public List<ElementId> SelectedSheetIds { get; set; } = new List<ElementId>();
         public string TargetSeries { get; set; } = string.Empty;
         public ElementId TargetViewportTypeId { get; set; } = ElementId.InvalidElementId;
+        public ElementId TargetViewTypeId { get; set; } = ElementId.InvalidElementId;
+        public string TargetViewTypeName { get; set; } = string.Empty;
         public bool WithDetailing { get; set; } = false;
 
         public void Execute(UIApplication uiapp)
@@ -38,12 +40,18 @@ namespace RincoMTO.Tools.DuplicateSheet
 
             List<ViewSheet> copiedSheets = new List<ViewSheet>();
             int copiedViewsCount = 0;
+            Dictionary<ElementId, ElementId> createdViewTypes = new Dictionary<ElementId, ElementId>();
 
             using (Transaction t = new Transaction(doc, WithDetailing ? "Duplicate Sheets with Detailing" : "Duplicate Empty Sheets"))
             {
                 t.Start();
                 try
                 {
+                    if (WithDetailing)
+                    {
+                        CreateDetailItemParameters(doc, uiapp);
+                    }
+
                     foreach (var sheet in selectedSheets)
                     {
                         var titleblocks = new FilteredElementCollector(doc, sheet.Id)
@@ -102,6 +110,53 @@ namespace RincoMTO.Tools.DuplicateSheet
                                         newView.Name = newViewName;
                                         allViewNames.Add(newViewName);
 
+                                        if (TargetViewTypeId != ElementId.InvalidElementId)
+                                        {
+                                            try
+                                            {
+                                                newView.ChangeTypeId(TargetViewTypeId);
+                                            }
+                                            catch { }
+                                        }
+                                        else if (!string.IsNullOrEmpty(TargetViewTypeName))
+                                        {
+                                            ElementId originalViewTypeId = view.GetTypeId();
+                                            if (originalViewTypeId != ElementId.InvalidElementId)
+                                            {
+                                                if (createdViewTypes.TryGetValue(originalViewTypeId, out ElementId mappedId))
+                                                {
+                                                    try { newView.ChangeTypeId(mappedId); } catch { }
+                                                }
+                                                else
+                                                {
+                                                    ViewFamilyType originalType = doc.GetElement(originalViewTypeId) as ViewFamilyType;
+                                                    if (originalType != null)
+                                                    {
+                                                        var existingType = new FilteredElementCollector(doc)
+                                                            .OfClass(typeof(ViewFamilyType))
+                                                            .Cast<ViewFamilyType>()
+                                                            .FirstOrDefault(v => v.ViewFamily == originalType.ViewFamily && v.Name.Equals(TargetViewTypeName, StringComparison.OrdinalIgnoreCase));
+
+                                                        if (existingType != null)
+                                                        {
+                                                            createdViewTypes[originalViewTypeId] = existingType.Id;
+                                                            try { newView.ChangeTypeId(existingType.Id); } catch { }
+                                                        }
+                                                        else
+                                                        {
+                                                            try 
+                                                            {
+                                                                ElementType newType = originalType.Duplicate(TargetViewTypeName);
+                                                                createdViewTypes[originalViewTypeId] = newType.Id;
+                                                                newView.ChangeTypeId(newType.Id);
+                                                            }
+                                                            catch { }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
                                         Viewport newVp = Viewport.Create(doc, newSheet.Id, newView.Id, vp.GetBoxCenter());
                                         
                                         ElementId originalVpTypeId = vp.GetTypeId();
@@ -131,10 +186,20 @@ namespace RincoMTO.Tools.DuplicateSheet
 
                                         foreach (var di in detailItems)
                                         {
-                                            Parameter elementParam = di.LookupParameter("Element");
-                                            if (elementParam != null && !elementParam.IsReadOnly)
+                                            Parameter elementIdParam = di.LookupParameter("Element ID");
+                                            if (elementIdParam != null && !elementIdParam.IsReadOnly)
                                             {
-                                                elementParam.Set(di.UniqueId);
+#if REVIT2024_OR_GREATER
+                                                elementIdParam.Set(di.Id.Value.ToString());
+#else
+                                                elementIdParam.Set(di.Id.IntegerValue.ToString());
+#endif
+                                            }
+                                            
+                                            Parameter uniqueIdParam = di.LookupParameter("Unique ID");
+                                            if (uniqueIdParam != null && !uniqueIdParam.IsReadOnly)
+                                            {
+                                                uniqueIdParam.Set(di.UniqueId);
                                             }
                                         }
                                     }
@@ -185,6 +250,122 @@ namespace RincoMTO.Tools.DuplicateSheet
                     return newName;
                 }
                 i++;
+            }
+        }
+
+        private void CreateDetailItemParameters(Document doc, UIApplication uiapp)
+        {
+            Category detailItemCat = Category.GetCategory(doc, BuiltInCategory.OST_DetailComponents);
+            if (detailItemCat == null) return;
+
+            BindingMap bindingMap = doc.ParameterBindings;
+            DefinitionBindingMapIterator it = bindingMap.ForwardIterator();
+            bool hasElementId = false;
+            bool hasUniqueId = false;
+            it.Reset();
+            while (it.MoveNext())
+            {
+                Definition def = it.Key;
+                if (def != null)
+                {
+                    if (def.Name.Equals("Element ID", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ElementBinding binding = it.Current as ElementBinding;
+                        if (binding != null && binding.Categories.Contains(detailItemCat))
+                        {
+                            hasElementId = true;
+                        }
+                    }
+                    else if (def.Name.Equals("Unique ID", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ElementBinding binding = it.Current as ElementBinding;
+                        if (binding != null && binding.Categories.Contains(detailItemCat))
+                        {
+                            hasUniqueId = true;
+                        }
+                    }
+                }
+            }
+
+            if (hasElementId && hasUniqueId) return;
+
+            Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
+            string originalSharedParamFile = app.SharedParametersFilename;
+            string tempSharedParamFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "TempSharedParams.txt");
+
+            try
+            {
+                System.IO.File.WriteAllText(tempSharedParamFile, "");
+                app.SharedParametersFilename = tempSharedParamFile;
+
+                DefinitionFile defFile = app.OpenSharedParameterFile();
+                if (defFile != null)
+                {
+                    DefinitionGroup group = defFile.Groups.get_Item("MTO Parameters");
+                    if (group == null) group = defFile.Groups.Create("MTO Parameters");
+                    
+                    CategorySet catSet = app.Create.NewCategorySet();
+                    catSet.Insert(detailItemCat);
+
+                    if (!hasElementId)
+                    {
+                        ExternalDefinitionCreationOptions opt = new ExternalDefinitionCreationOptions("Element ID", SpecTypeId.String.Text);
+                        opt.Visible = true;
+                        opt.UserModifiable = true;
+                        Definition externalDef = group.Definitions.Create(opt);
+                        InstanceBinding instanceBinding = app.Create.NewInstanceBinding(catSet);
+#if REVIT2024_OR_GREATER
+                        doc.ParameterBindings.Insert(externalDef, instanceBinding, GroupTypeId.Text);
+#else
+                        doc.ParameterBindings.Insert(externalDef, instanceBinding, BuiltInParameterGroup.PG_TEXT);
+#endif
+                    }
+
+                    if (!hasUniqueId)
+                    {
+                        ExternalDefinitionCreationOptions opt = new ExternalDefinitionCreationOptions("Unique ID", SpecTypeId.String.Text);
+                        opt.Visible = true;
+                        opt.UserModifiable = true;
+                        Definition externalDef = group.Definitions.Create(opt);
+                        InstanceBinding instanceBinding = app.Create.NewInstanceBinding(catSet);
+#if REVIT2024_OR_GREATER
+                        doc.ParameterBindings.Insert(externalDef, instanceBinding, GroupTypeId.Text);
+#else
+                        doc.ParameterBindings.Insert(externalDef, instanceBinding, BuiltInParameterGroup.PG_TEXT);
+#endif
+                    }
+
+                    // Set allow vary between groups
+                    DefinitionBindingMapIterator itAfter = doc.ParameterBindings.ForwardIterator();
+                    itAfter.Reset();
+                    while (itAfter.MoveNext())
+                    {
+                        InternalDefinition intDef = itAfter.Key as InternalDefinition;
+                        if (intDef != null && (intDef.Name.Equals("Element ID", StringComparison.OrdinalIgnoreCase) || intDef.Name.Equals("Unique ID", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            try
+                            {
+                                intDef.SetAllowVaryBetweenGroups(doc, true);
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                try
+                {
+                    app.SharedParametersFilename = originalSharedParamFile;
+                    if (System.IO.File.Exists(tempSharedParamFile))
+                    {
+                        System.IO.File.Delete(tempSharedParamFile);
+                    }
+                }
+                catch { }
             }
         }
     }
