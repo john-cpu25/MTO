@@ -60,10 +60,7 @@ namespace RincoMTO.Tools.DuplicateSheet
                 t.Start();
                 try
                 {
-                    if (WithDetailing)
-                    {
-                        CreateDetailItemParameters(doc, uiapp);
-                    }
+                    // No parameter creation during standard duplication
 
                     foreach (var sheet in selectedSheets)
                     {
@@ -192,29 +189,7 @@ namespace RincoMTO.Tools.DuplicateSheet
                                         
                                         copiedViewsCount++;
 
-                                        var detailItems = new FilteredElementCollector(doc, newView.Id)
-                                            .OfCategory(BuiltInCategory.OST_DetailComponents)
-                                            .WhereElementIsNotElementType()
-                                            .ToElements();
-
-                                        foreach (var di in detailItems)
-                                        {
-                                            Parameter elementIdParam = di.LookupParameter("Element ID");
-                                            if (elementIdParam != null && !elementIdParam.IsReadOnly)
-                                            {
-#if REVIT2024_OR_GREATER
-                                                elementIdParam.Set(di.Id.Value.ToString());
-#else
-                                                elementIdParam.Set(di.Id.IntegerValue.ToString());
-#endif
-                                            }
-                                            
-                                            Parameter uniqueIdParam = di.LookupParameter("Unique ID");
-                                            if (uniqueIdParam != null && !uniqueIdParam.IsReadOnly)
-                                            {
-                                                uniqueIdParam.Set(di.UniqueId);
-                                            }
-                                        }
+                                        // Parameter copying has been moved to Copy E&U ID tab
                                     }
                                 }
                             }
