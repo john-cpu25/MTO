@@ -50,18 +50,10 @@ namespace RincoMTO.Tools.MtoCheck
             Discrepancies.Clear();
 
             // Collect Detail Items in Source View
-            var sourceItems = new FilteredElementCollector(doc, SourceView.Id)
-                .OfCategory(BuiltInCategory.OST_DetailComponents)
-                .WhereElementIsNotElementType()
-                .Cast<FamilyInstance>()
-                .ToList();
+            var sourceItems = GetDetailItems(doc, SourceView);
 
             // Collect Detail Items in Target View
-            var targetItems = new FilteredElementCollector(doc, TargetView.Id)
-                .OfCategory(BuiltInCategory.OST_DetailComponents)
-                .WhereElementIsNotElementType()
-                .Cast<FamilyInstance>()
-                .ToList();
+            var targetItems = GetDetailItems(doc, TargetView);
 
             // Dictionary for target items by Unique ID (parameter)
             var targetByUniqueIdParam = new Dictionary<string, FamilyInstance>();
@@ -147,6 +139,36 @@ namespace RincoMTO.Tools.MtoCheck
 
             NotifyStatus?.Invoke($"Kiểm tra hoàn tất. Phát hiện {Discrepancies.Count} điểm sai lệch.");
             OnCheckCompleted?.Invoke();
+        }
+
+        private List<FamilyInstance> GetDetailItems(Document doc, View view)
+        {
+            var items = new List<FamilyInstance>();
+            if (view is ViewSheet sheet)
+            {
+                var placedViews = sheet.GetAllPlacedViews();
+                foreach (var vId in placedViews)
+                {
+                    items.AddRange(new FilteredElementCollector(doc, vId)
+                        .OfCategory(BuiltInCategory.OST_DetailComponents)
+                        .WhereElementIsNotElementType()
+                        .Cast<FamilyInstance>());
+                }
+                
+                // Collect items directly placed on sheet
+                items.AddRange(new FilteredElementCollector(doc, sheet.Id)
+                    .OfCategory(BuiltInCategory.OST_DetailComponents)
+                    .WhereElementIsNotElementType()
+                    .Cast<FamilyInstance>());
+            }
+            else
+            {
+                items.AddRange(new FilteredElementCollector(doc, view.Id)
+                    .OfCategory(BuiltInCategory.OST_DetailComponents)
+                    .WhereElementIsNotElementType()
+                    .Cast<FamilyInstance>());
+            }
+            return items;
         }
 
         public string GetName() => "MtoCheckHandler";

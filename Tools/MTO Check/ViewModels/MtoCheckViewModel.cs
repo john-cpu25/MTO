@@ -68,14 +68,16 @@ namespace RincoMTO.Tools.MtoCheck.ViewModels
             var views = new FilteredElementCollector(_doc)
                 .OfClass(typeof(View))
                 .Cast<View>()
-                .Where(v => !v.IsTemplate && v.ViewType != ViewType.DrawingSheet && v.ViewType != ViewType.ProjectBrowser && v.ViewType != ViewType.SystemBrowser)
-                .OrderBy(v => v.Name)
+                .Where(v => !v.IsTemplate && v.ViewType != ViewType.ProjectBrowser && v.ViewType != ViewType.SystemBrowser)
+                .OrderBy(v => v.ViewType == ViewType.DrawingSheet ? 0 : 1)
+                .ThenBy(v => v.Name)
                 .ToList();
 
             AvailableViews.Clear();
             foreach (var v in views)
             {
-                AvailableViews.Add(new ViewItem { Id = v.Id, Name = v.Name, View = v });
+                string prefix = v.ViewType == ViewType.DrawingSheet ? "[Sheet]" : "[View]";
+                AvailableViews.Add(new ViewItem { Id = v.Id, Name = $"{prefix} {v.Name}", View = v });
             }
         }
 
