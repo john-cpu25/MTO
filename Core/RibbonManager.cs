@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -44,6 +44,7 @@ namespace RincoMTO.Core
             AddViewRefButton(generalPanel);
             AddLayerXYButton(generalPanel);
             AddDuplicateSheetButton(generalPanel);
+            AddMtoCheckButton(generalPanel);
         }
 
         private static RibbonPanel GetOrCreatePanel(UIControlledApplication application, string tabName, string panelName)
@@ -273,6 +274,21 @@ namespace RincoMTO.Core
             btnEmpty.LargeImage = LoadIcon("DuplicateSheet.png");
             btnEmpty.Image = LoadIcon("DuplicateSheet.png", 16);
             pdBtn.AddPushButton(btnEmpty);
+        }
+
+        private static void AddMtoCheckButton(RibbonPanel panel)
+        {
+            PushButtonData btnData = new PushButtonData(
+                "cmdMtoCheck",
+                "MTO\nCheck",
+                _assemblyPath,
+                "RincoMTO.Tools.MtoCheck.Command"
+            );
+            btnData.ToolTip = "Check and compare rebar between drawings using Element ID and Unique ID.";
+
+            PushButton pb = panel.AddItem(btnData) as PushButton;
+            pb.LargeImage = LoadIcon("Check.png"); // Assuming a generic icon or it will just display text if missing
+            pb.Image = LoadIcon("Check.png", 16);
         }
     }
 }
