@@ -675,6 +675,20 @@ namespace RincoMTO.Tools.MtoSmartTag
             {
                 // Reset detail item color
                 view.SetElementOverrides(item.Id, new OverrideGraphicSettings());
+                
+                if (item is FamilyInstance fiColor)
+                {
+                    var subIds = fiColor.GetSubComponentIds();
+                    if (subIds != null)
+                    {
+                        foreach (var subId in subIds)
+                        {
+                            try { view.SetElementOverrides(subId, new OverrideGraphicSettings()); }
+                            catch { }
+                        }
+                    }
+                }
+                
                 resetCount++;
             }
 
