@@ -134,6 +134,59 @@ namespace RincoMTO.Tools.MtoCheck
                             Description = $"Thép dư thừa ở bản sao (Bản gốc đã bị xoá Element ID: {tElemIdVal})"
                         });
                     }
+                    else
+                    {
+                        // Compare parameters if it exists in source
+                        FamilyInstance sItem = null;
+                        if (!string.IsNullOrEmpty(tUniqueIdVal)) 
+                            sItem = sourceItems.FirstOrDefault(s => s.UniqueId == tUniqueIdVal);
+                        else if (!string.IsNullOrEmpty(tElemIdVal)) 
+                            sItem = sourceItems.FirstOrDefault(s => s.Id.ToString() == tElemIdVal);
+
+                        if (sItem != null)
+                        {
+                            List<string> changedParams = new List<string>();
+                            foreach (Parameter tParam in tItem.Parameters)
+                            {
+                                if (tParam.IsReadOnly) continue;
+                                string pName = tParam.Definition.Name;
+                                if (pName == "Unique ID" || pName == "Element ID") continue;
+
+                                Parameter sParam = sItem.LookupParameter(pName);
+                                if (sParam != null && sParam.StorageType == tParam.StorageType)
+                                {
+                                    bool isDiff = false;
+                                    switch (tParam.StorageType)
+                                    {
+                                        case StorageType.String:
+                                            isDiff = tParam.AsString() != sParam.AsString();
+                                            break;
+                                        case StorageType.Integer:
+                                            isDiff = tParam.AsInteger() != sParam.AsInteger();
+                                            break;
+                                        case StorageType.Double:
+                                            isDiff = Math.Abs(tParam.AsDouble() - sParam.AsDouble()) > 0.0001;
+                                            break;
+                                        case StorageType.ElementId:
+                                            isDiff = tParam.AsElementId() != sParam.AsElementId();
+                                            break;
+                                    }
+                                    if (isDiff) changedParams.Add(pName);
+                                }
+                            }
+
+                            if (changedParams.Count > 0)
+                            {
+                                Discrepancies.Add(new CheckResultItem
+                                {
+                                    IssueType = "Modified",
+                                    ElementId = tItem.Id.ToString(),
+                                    FamilyName = tItem.Symbol.FamilyName,
+                                    Description = $"Bị thay đổi thông số: {string.Join(", ", changedParams)}"
+                                });
+                            }
+                        }
+                    }
                 }
             }
 

@@ -51,11 +51,7 @@ namespace RincoMTO.Tools.MtoCheck.ViewModels
             {
                 _dispatcher.Invoke(() =>
                 {
-                    Results.Clear();
-                    foreach (var res in _handler.Discrepancies)
-                    {
-                        Results.Add(res);
-                    }
+                    Results = new ObservableCollection<CheckResultItem>(_handler.Discrepancies);
                 });
             };
 
