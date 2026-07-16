@@ -11,7 +11,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TabControl Grid.Row="0" Margin="0,0,0,10">
+        <TabControl x:Name="tabControl" Grid.Row="0" Margin="0,0,0,10">
             <TabItem Header="Sheets">
                 <Grid Margin="5">
                     <Grid.RowDefinitions>
@@ -76,6 +76,12 @@
                     <TextBlock Text="View Type (for duplicated views):" FontWeight="Bold" Margin="0,0,0,5"/>
                     <ComboBox x:Name="cboViewType" IsEditable="True" ToolTip="Select or type a new view type" Height="25"/>
                 </StackPanel>
+            </TabItem>
+
+            <TabItem Header="Copy E&amp;U ID">
+                <Grid Margin="15">
+                    <TextBlock Text="Select sheets from the 'Sheets' tab, then click OK to copy Element ID and Unique ID to the rebars inside views containing 'OVER'." TextWrapping="Wrap" FontSize="14" Foreground="#374151"/>
+                </Grid>
             </TabItem>
         </TabControl>
 

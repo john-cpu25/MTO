@@ -99,10 +99,19 @@ namespace RincoMTO.Tools.DuplicateSheet.UI
                 return;
             }
 
-            TargetSheetSeries = cboSheetSeries.Text;
-            
             _handler.SelectedSheetIds = SelectedSheets.Select(s => s.Id).ToList();
-            _handler.TargetSeries = TargetSheetSeries;
+            
+            if (tabControl.SelectedIndex == 2)
+            {
+                _handler.ActionType = "CopyID";
+            }
+            else
+            {
+                _handler.ActionType = "Duplicate";
+                
+                TargetSheetSeries = cboSheetSeries.Text;
+                _handler.TargetSeries = TargetSheetSeries;
+
             
             if (cboViewportType.SelectedValue is ElementId vpTypeId)
             {
@@ -142,6 +151,7 @@ namespace RincoMTO.Tools.DuplicateSheet.UI
                     _handler.TargetViewTypeName = string.Empty;
                 }
             }
+            } // End of else (Duplicate)
 
             _exEvent.Raise();
             

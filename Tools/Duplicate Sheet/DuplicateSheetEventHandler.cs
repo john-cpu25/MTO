@@ -14,6 +14,7 @@ namespace RincoMTO.Tools.DuplicateSheet
         public ElementId TargetViewTypeId { get; set; } = ElementId.InvalidElementId;
         public string TargetViewTypeName { get; set; } = string.Empty;
         public bool WithDetailing { get; set; } = false;
+        public string ActionType { get; set; } = "Duplicate"; // "Duplicate" or "CopyID"
 
         public void Execute(UIApplication uiapp)
         {
@@ -33,6 +34,12 @@ namespace RincoMTO.Tools.DuplicateSheet
             }
 
             if (selectedSheets.Count == 0) return;
+
+            if (ActionType == "CopyID")
+            {
+                ExecuteCopyId(uiapp, doc, selectedSheets);
+                return;
+            }
 
             HashSet<string> allSheetNames = new HashSet<string>(new FilteredElementCollector(doc).OfClass(typeof(ViewSheet)).Cast<ViewSheet>().Select(s => s.Name));
             HashSet<string> allSheetNumbers = new HashSet<string>(new FilteredElementCollector(doc).OfClass(typeof(ViewSheet)).Cast<ViewSheet>().Select(s => s.SheetNumber));
@@ -227,6 +234,66 @@ namespace RincoMTO.Tools.DuplicateSheet
                 msg += ".";
             }
             TaskDialog.Show("Success", msg);
+        }
+
+        private void ExecuteCopyId(UIApplication uiapp, Document doc, List<ViewSheet> selectedSheets)
+        {
+            int updatedCount = 0;
+            using (Transaction t = new Transaction(doc, "Copy E&U ID"))
+            {
+                t.Start();
+                try
+                {
+                    CreateDetailItemParameters(doc, uiapp);
+
+                    foreach (var sheet in selectedSheets)
+                    {
+                        var placedViews = sheet.GetAllPlacedViews();
+                        foreach (var vId in placedViews)
+                        {
+                            var view = doc.GetElement(vId) as View;
+                            if (view != null && view.Name.ToUpper().Contains("OVER"))
+                            {
+                                var detailItems = new FilteredElementCollector(doc, view.Id)
+                                    .OfClass(typeof(FamilyInstance))
+                                    .OfCategory(BuiltInCategory.OST_DetailComponents)
+                                    .WhereElementIsNotElementType()
+                                    .Cast<FamilyInstance>()
+                                    .Where(fi => fi.Symbol != null && fi.Symbol.FamilyName.Contains("Reo__Reinforcement"));
+
+                                foreach (var di in detailItems)
+                                {
+                                    Parameter elementIdParam = di.LookupParameter("Element ID");
+                                    if (elementIdParam != null && !elementIdParam.IsReadOnly)
+                                    {
+#if REVIT2024_OR_GREATER
+                                        elementIdParam.Set(di.Id.Value.ToString());
+#else
+                                        elementIdParam.Set(di.Id.IntegerValue.ToString());
+#endif
+                                    }
+                                    
+                                    Parameter uniqueIdParam = di.LookupParameter("Unique ID");
+                                    if (uniqueIdParam != null && !uniqueIdParam.IsReadOnly)
+                                    {
+                                        uniqueIdParam.Set(di.UniqueId);
+                                    }
+                                    updatedCount++;
+                                }
+                            }
+                        }
+                    }
+                    t.Commit();
+                }
+                catch (Exception ex)
+                {
+                    t.RollBack();
+                    TaskDialog.Show("Error", $"An error occurred:\n{ex.Message}");
+                    return;
+                }
+            }
+
+            TaskDialog.Show("Success", $"Đã copy Element ID và Unique ID thành công cho {updatedCount} thép trong các sheet đã chọn.");
         }
 
         public string GetName()
