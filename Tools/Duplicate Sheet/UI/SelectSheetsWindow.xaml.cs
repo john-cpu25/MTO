@@ -32,6 +32,7 @@ namespace RincoMTO.Tools.DuplicateSheet.UI
             _sheetsView.Filter = SheetFilter;
             _sheetsView.GroupDescriptions.Add(new PropertyGroupDescription("Series"));
             lbSheets.ItemsSource = _sheetsView;
+            lbSheetsCopyID.ItemsSource = _sheetsView;
             
             cboSheetSeries.ItemsSource = availableSeries;
             cboSheetSeries.Text = "S10000 SERIES - MTO";
