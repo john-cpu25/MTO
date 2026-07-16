@@ -403,6 +403,20 @@ namespace RincoMTO.Tools.MtoSmartTag
                                 itemOverride.SetSurfaceForegroundPatternColor(color);
                                 itemOverride.SetCutLineColor(color);
                                 view.SetElementOverrides(item.Id, itemOverride);
+
+                                // Override cho các subcomponents (ví dụ: dot)
+                                if (item is FamilyInstance fiColor)
+                                {
+                                    var subIds = fiColor.GetSubComponentIds();
+                                    if (subIds != null)
+                                    {
+                                        foreach (var subId in subIds)
+                                        {
+                                            try { view.SetElementOverrides(subId, itemOverride); }
+                                            catch { }
+                                        }
+                                    }
+                                }
                             }
                             
                             // Override cho tag (annotation)

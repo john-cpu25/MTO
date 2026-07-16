@@ -266,8 +266,7 @@
                 <!-- Color Override -->
                 <StackPanel Margin="0,0,0,14">
                     <TextBlock Text="OVERRIDE COLOR" Style="{StaticResource SectionHeader}"/>
-                    <CheckBox IsChecked="{Binding ApplyColorOverride}" Content="Enable Color Override" VerticalContentAlignment="Center" Margin="0,0,0,6"/>
-                    <CheckBox IsChecked="{Binding OverrideRebarColor}" Content="Override Rebar Color (thép)" VerticalContentAlignment="Center" Margin="0,0,0,8" IsEnabled="{Binding ApplyColorOverride}"/>
+                    <CheckBox IsChecked="{Binding ApplyColorOverride}" Content="Enable Color Override (Tag &amp; Thép)" VerticalContentAlignment="Center" Margin="0,0,0,8"/>
                     <StackPanel Orientation="Horizontal" IsEnabled="{Binding ApplyColorOverride}">
                         <Button Click="PickColor_Click" Cursor="Hand" Margin="0,0,10,0">
                             <Button.Template>

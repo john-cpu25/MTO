@@ -120,12 +120,8 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
             }
         }
 
-        // Color Override
         [ObservableProperty]
         private bool _applyColorOverride = true;
-
-        [ObservableProperty]
-        private bool _overrideRebarColor = true;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(PreviewBrush))]
@@ -376,7 +372,7 @@ namespace RincoMTO.Tools.MtoSmartTag.ViewModels
             _handler.OnlyAlreadyTagged = OnlyAlreadyTagged;
             _handler.OnlyUntagged = OnlyUntagged;
             _handler.ApplyColorOverride = ApplyColorOverride;
-            _handler.OverrideRebarColor = OverrideRebarColor;
+            _handler.OverrideRebarColor = ApplyColorOverride;
             _handler.ColorR = ColorR;
             _handler.ColorG = ColorG;
             _handler.ColorB = ColorB;
