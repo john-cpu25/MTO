@@ -80,7 +80,12 @@
 
             <TabItem Header="Copy E&amp;U ID">
                 <Grid Margin="15">
-                    <TextBlock Text="Select sheets from the 'Sheets' tab, then click OK to copy Element ID and Unique ID to the rebars inside views containing 'OVER'." TextWrapping="Wrap" FontSize="14" Foreground="#374151"/>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Select sheets from the 'Sheets' tab, then click OK to copy Element ID and Unique ID to the rebars inside views containing 'OVER'." TextWrapping="Wrap" FontSize="14" Foreground="#374151" Margin="0,0,0,15"/>
+                    <Button x:Name="btnCreateParams" Grid.Row="1" Content="Tạo Parameters (Element ID, Unique ID)" Height="30" Width="250" HorizontalAlignment="Left" Click="BtnCreateParams_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>

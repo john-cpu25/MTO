@@ -18,11 +18,17 @@ namespace RincoMTO.Tools.DuplicateSheet
 
         public void Execute(UIApplication uiapp)
         {
-            if (SelectedSheetIds == null || SelectedSheetIds.Count == 0) return;
-
             UIDocument uidoc = uiapp.ActiveUIDocument;
             if (uidoc == null) return;
             Document doc = uidoc.Document;
+
+            if (ActionType == "CreateParameters")
+            {
+                ExecuteCreateParameters(uiapp, doc);
+                return;
+            }
+
+            if (SelectedSheetIds == null || SelectedSheetIds.Count == 0) return;
 
             List<ViewSheet> selectedSheets = new List<ViewSheet>();
             foreach (var id in SelectedSheetIds)
@@ -294,6 +300,26 @@ namespace RincoMTO.Tools.DuplicateSheet
             }
 
             TaskDialog.Show("Success", $"Đã copy Element ID và Unique ID thành công cho {updatedCount} thép trong các sheet đã chọn.");
+        }
+
+        private void ExecuteCreateParameters(UIApplication uiapp, Document doc)
+        {
+            using (Transaction t = new Transaction(doc, "Create E&U ID Parameters"))
+            {
+                t.Start();
+                try
+                {
+                    CreateDetailItemParameters(doc, uiapp);
+                    t.Commit();
+                }
+                catch (Exception ex)
+                {
+                    t.RollBack();
+                    TaskDialog.Show("Error", $"An error occurred:\n{ex.Message}");
+                    return;
+                }
+            }
+            TaskDialog.Show("Success", "Đã tạo 2 parameter Element ID và Unique ID thành công.");
         }
 
         public string GetName()

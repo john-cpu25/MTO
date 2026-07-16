@@ -163,6 +163,12 @@ namespace RincoMTO.Tools.DuplicateSheet.UI
             Close();
         }
 
+        private void BtnCreateParams_Click(object sender, RoutedEventArgs e)
+        {
+            _handler.ActionType = "CreateParameters";
+            _exEvent.Raise();
+        }
+
         private bool SheetFilter(object item)
         {
             if (string.IsNullOrEmpty(TxtSearch.Text))
