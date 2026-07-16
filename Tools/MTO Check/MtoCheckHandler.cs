@@ -149,11 +149,15 @@ namespace RincoMTO.Tools.MtoCheck
                 var placedViews = sheet.GetAllPlacedViews();
                 foreach (var vId in placedViews)
                 {
-                    items.AddRange(new FilteredElementCollector(doc, vId)
-                        .OfClass(typeof(FamilyInstance))
-                        .OfCategory(BuiltInCategory.OST_DetailComponents)
-                        .WhereElementIsNotElementType()
-                        .Cast<FamilyInstance>());
+                    var placedView = doc.GetElement(vId) as View;
+                    if (placedView != null && placedView.Name.ToUpper().Contains("OVER"))
+                    {
+                        items.AddRange(new FilteredElementCollector(doc, vId)
+                            .OfClass(typeof(FamilyInstance))
+                            .OfCategory(BuiltInCategory.OST_DetailComponents)
+                            .WhereElementIsNotElementType()
+                            .Cast<FamilyInstance>());
+                    }
                 }
                 
                 // Collect items directly placed on sheet
