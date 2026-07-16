@@ -150,6 +150,7 @@ namespace RincoMTO.Tools.MtoCheck
                 foreach (var vId in placedViews)
                 {
                     items.AddRange(new FilteredElementCollector(doc, vId)
+                        .OfClass(typeof(FamilyInstance))
                         .OfCategory(BuiltInCategory.OST_DetailComponents)
                         .WhereElementIsNotElementType()
                         .Cast<FamilyInstance>());
@@ -157,6 +158,7 @@ namespace RincoMTO.Tools.MtoCheck
                 
                 // Collect items directly placed on sheet
                 items.AddRange(new FilteredElementCollector(doc, sheet.Id)
+                    .OfClass(typeof(FamilyInstance))
                     .OfCategory(BuiltInCategory.OST_DetailComponents)
                     .WhereElementIsNotElementType()
                     .Cast<FamilyInstance>());
@@ -164,6 +166,7 @@ namespace RincoMTO.Tools.MtoCheck
             else
             {
                 items.AddRange(new FilteredElementCollector(doc, view.Id)
+                    .OfClass(typeof(FamilyInstance))
                     .OfCategory(BuiltInCategory.OST_DetailComponents)
                     .WhereElementIsNotElementType()
                     .Cast<FamilyInstance>());
