@@ -6,21 +6,49 @@ using Autodesk.Revit.UI;
 
 namespace RincoMTO.Tools.MtoCheck
 {
+    /// <summary>
+    /// External event handler để kiểm tra sai lệch thép (reinforcement detail items)
+    /// giữa Source View (bản gốc) và Target View (bản sao).
+    /// Hỗ trợ so sánh nhiều cặp sheet cùng lúc.
+    /// Phát hiện 3 loại vấn đề: Missing, Extra, và Parameter Changed.
+    /// Hỗ trợ tự động copy thép bị thiếu + tag từ Source → Target.
+    /// </summary>
     public class MtoCheckHandler : IExternalEventHandler
     {
+        /// <summary>Hành động cần thực thi: "Check" hoặc "Update".</summary>
         public string Action { get; set; } = string.Empty;
 
-        // Inputs
-        public View SourceView { get; set; }
-        public View TargetView { get; set; }
+        /// <summary>Danh sách các cặp Source-Target cần kiểm tra.</summary>
+        public List<ViewPair> ViewPairs { get; set; } = new List<ViewPair>();
 
-        // Outputs
+        /// <summary>Danh sách kết quả kiểm tra - chứa các điểm sai lệch phát hiện được.</summary>
         public List<CheckResultItem> Discrepancies { get; private set; } = new List<CheckResultItem>();
 
-        // Delegates
+        /// <summary>Danh sách thép bị thiếu (lưu lại sau Check để dùng cho Update).</summary>
+        public List<MissingItemInfo> MissingItems { get; private set; } = new List<MissingItemInfo>();
+
+        /// <summary>Danh sách thép có parameter thay đổi (lưu lại sau Check để dùng cho Update).</summary>
+        public List<ChangedItemInfo> ChangedItems { get; private set; } = new List<ChangedItemInfo>();
+
+        /// <summary>Danh sách ElementId thép dư ở Target (lưu lại sau Check để xóa khi Update).</summary>
+        public List<ElementId> ExtraItemIds { get; private set; } = new List<ElementId>();
+
+        /// <summary>Danh sách thép có vị trí thay đổi (lưu lại sau Check để dùng cho Update).</summary>
+        public List<LocationChangedItemInfo> LocationChangedItems { get; private set; } = new List<LocationChangedItemInfo>();
+
+        /// <summary>Callback thông báo trạng thái cho UI (status message).</summary>
         public Action<string> NotifyStatus { get; set; }
+
+        /// <summary>Callback khi quá trình kiểm tra hoàn tất.</summary>
         public Action OnCheckCompleted { get; set; }
 
+        /// <summary>Callback khi quá trình fix hoàn tất.</summary>
+        public Action OnFixCompleted { get; set; }
+
+        /// <summary>
+        /// Entry point được gọi bởi Revit ExternalEvent.
+        /// Dispatch hành động dựa trên property Action.
+        /// </summary>
         public void Execute(UIApplication app)
         {
             var uidoc = app.ActiveUIDocument;
@@ -32,6 +60,10 @@ namespace RincoMTO.Tools.MtoCheck
                 {
                     RunCheck(doc);
                 }
+                else if (Action == "Update")
+                {
+                    RunUpdate(doc);
+                }
             }
             catch (Exception ex)
             {
@@ -39,28 +71,61 @@ namespace RincoMTO.Tools.MtoCheck
             }
         }
 
+        /// <summary>
+        /// Thực hiện kiểm tra sai lệch cho tất cả các cặp View trong ViewPairs.
+        /// </summary>
         private void RunCheck(Document doc)
         {
-            if (SourceView == null || TargetView == null)
+            if (ViewPairs == null || ViewPairs.Count == 0)
             {
-                NotifyStatus?.Invoke("Vui lòng chọn đủ Source View và Target View.");
+                NotifyStatus?.Invoke("Không có cặp sheet nào để kiểm tra.");
                 return;
             }
 
             Discrepancies.Clear();
+            MissingItems.Clear();
+            ChangedItems.Clear();
+            ExtraItemIds.Clear();
+            LocationChangedItems.Clear();
+
+            // Duyệt từng cặp Source-Target và kiểm tra
+            foreach (var pair in ViewPairs)
+            {
+                NotifyStatus?.Invoke($"Đang kiểm tra: {pair.SheetName}...");
+                RunCheckForPair(doc, pair);
+            }
+
+            NotifyStatus?.Invoke($"Kiểm tra hoàn tất {ViewPairs.Count} sheet. Phát hiện {Discrepancies.Count} điểm sai lệch.");
+            OnCheckCompleted?.Invoke();
+        }
+
+        /// <summary>
+        /// Thực hiện kiểm tra sai lệch cho 1 cặp Source-Target.
+        /// Quy trình:
+        ///   1. Thu thập detail items (Reo__Reinforcement) từ cả 2 view
+        ///   2. Xây dựng dictionary tra cứu theo Unique ID và Element ID
+        ///   3. Kiểm tra Missing (có ở Source, thiếu ở Target) + lưu MissingItemInfo
+        ///   4. Kiểm tra Extra (có ở Target, không có ở Source)
+        ///   5. Kiểm tra Parameter Changed (tất cả parameters)
+        /// </summary>
+        private void RunCheckForPair(Document doc, ViewPair pair)
+        {
+            string sheetName = pair.SheetName;
 
             // Collect Detail Items in Source View
-            var sourceItems = GetDetailItems(doc, SourceView);
+            var sourceItems = GetDetailItems(doc, pair.Source);
 
             // Collect Detail Items in Target View
-            var targetItems = GetDetailItems(doc, TargetView);
+            var targetItems = GetDetailItems(doc, pair.Target);
 
+            // Lấy Unique ID từ parameter "Unique ID" (nếu có), fallback về fi.UniqueId
             string GetTrackingUniqueId(FamilyInstance fi)
             {
                 string p = fi.LookupParameter("Unique ID")?.AsString();
                 return !string.IsNullOrEmpty(p) ? p : fi.UniqueId;
             }
 
+            // Lấy Element ID từ parameter "Element ID" (nếu có), fallback về fi.Id
             string GetTrackingElementId(FamilyInstance fi)
             {
                 string p = fi.LookupParameter("Element ID")?.AsString();
@@ -71,7 +136,7 @@ namespace RincoMTO.Tools.MtoCheck
 #endif
             }
 
-            // Dictionary for target items
+            // Xây dựng dictionary tra cứu nhanh cho Target items (theo Unique ID và Element ID)
             var targetByUniqueId = new Dictionary<string, FamilyInstance>();
             var targetByElementId = new Dictionary<string, FamilyInstance>();
             foreach (var item in targetItems)
@@ -83,7 +148,7 @@ namespace RincoMTO.Tools.MtoCheck
                 if (!targetByElementId.ContainsKey(eId)) targetByElementId[eId] = item;
             }
 
-            // Dictionary for source items
+            // Xây dựng dictionary tra cứu nhanh cho Source items (theo Unique ID và Element ID)
             var sourceByUniqueId = new Dictionary<string, FamilyInstance>();
             var sourceByElementId = new Dictionary<string, FamilyInstance>();
             foreach (var item in sourceItems)
@@ -106,10 +171,19 @@ namespace RincoMTO.Tools.MtoCheck
                 {
                     Discrepancies.Add(new CheckResultItem
                     {
+                        SheetName = sheetName,
                         IssueType = "Missing in Target",
                         ElementId = sElemId,
                         FamilyName = sItem.Symbol.FamilyName,
                         Description = $"Thép bị thiếu ở bản sao (Không tìm thấy Element ID: {sElemId} hoặc Unique ID: {sUniqueId})"
+                    });
+
+                    // Lưu thông tin để FixMissing có thể copy sau
+                    MissingItems.Add(new MissingItemInfo
+                    {
+                        SourceElementId = sItem.Id,
+                        SourceViewId = sItem.OwnerViewId,
+                        Pair = pair
                     });
                 }
             }
@@ -126,24 +200,524 @@ namespace RincoMTO.Tools.MtoCheck
                 {
                     Discrepancies.Add(new CheckResultItem
                     {
+                        SheetName = sheetName,
                         IssueType = "Extra in Target (Orphaned)",
                         ElementId = tElemId,
                         FamilyName = tItem.Symbol.FamilyName,
                         Description = $"Thép dư thừa ở bản sao (Không có ở bản gốc Element ID: {tElemId})"
                     });
-                }
 
+                    // Lưu ElementId để xóa khi Update
+                    ExtraItemIds.Add(tItem.Id);
+                }
             }
 
-            NotifyStatus?.Invoke($"Kiểm tra hoàn tất. Phát hiện {Discrepancies.Count} điểm sai lệch.");
-            OnCheckCompleted?.Invoke();
+            // 3. Check for PARAMETER CHANGES on matched items (Exist in both Source and Target)
+            // Duyệt TẤT CẢ parameters của thanh thép để phát hiện mọi thay đổi
+            // Bỏ qua các parameter không cần so sánh giữa 2 bản vẽ
+            var skipParams = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Unique ID", "IfcGUID", "Mark", "Workset"
+            };
+
+            foreach (var sItem in sourceItems)
+            {
+                string sUniqueId = GetTrackingUniqueId(sItem);
+                string sElemId = GetTrackingElementId(sItem);
+
+                // Tìm item tương ứng ở Target (ưu tiên match theo Unique ID, fallback Element ID)
+                FamilyInstance tItem = null;
+                if (targetByUniqueId.TryGetValue(sUniqueId, out tItem)
+                    || targetByElementId.TryGetValue(sElemId, out tItem))
+                {
+                    // Duyệt tất cả parameters của Source item và so sánh với Target
+                    foreach (Parameter sParam in sItem.Parameters)
+                    {
+                        if (sParam?.Definition == null) continue;
+
+                        string paramName = sParam.Definition.Name;
+
+                        // Bỏ qua parameter tracking (dùng để match, không cần so sánh)
+                        if (skipParams.Contains(paramName)) continue;
+
+                        CompareParameter(sParam, tItem, sElemId, sItem.Symbol.FamilyName, sheetName, pair);
+                    }
+
+                    // So sánh vị trí (LocationPoint) giữa Source và Target
+                    CompareLocation(sItem, tItem, sElemId, sItem.Symbol.FamilyName, sheetName);
+                }
+            }
         }
 
+        /// <summary>
+        /// So sánh giá trị của một parameter (từ Source) với parameter cùng tên trên Target item.
+        /// Sử dụng AsValueString() (giá trị có đơn vị, vd: "12 mm") với fallback AsString().
+        /// Nếu giá trị khác nhau, thêm CheckResultItem và lưu ChangedItemInfo để Update sau.
+        /// </summary>
+        private void CompareParameter(Parameter sourceParam, FamilyInstance target,
+            string elementId, string familyName, string sheetName, ViewPair pair)
+        {
+            string paramName = sourceParam.Definition.Name;
+
+            // Tìm parameter cùng tên trên Target item
+            Parameter tParam = target.LookupParameter(paramName);
+
+            // Đọc giá trị: ưu tiên AsValueString() (có đơn vị), fallback AsString(), default ""
+            string sVal = sourceParam.AsValueString() ?? sourceParam.AsString() ?? "";
+            string tVal = tParam != null
+                ? (tParam.AsValueString() ?? tParam.AsString() ?? "")
+                : "";
+
+            // Chỉ báo lỗi khi giá trị khác nhau
+            if (sVal != tVal)
+            {
+                Discrepancies.Add(new CheckResultItem
+                {
+                    SheetName = sheetName,
+                    IssueType = "Parameter Changed",
+                    ElementId = elementId,
+                    FamilyName = familyName,
+                    ParameterName = paramName,
+                    SourceValue = sVal,
+                    TargetValue = tVal,
+                    Description = $"{paramName}: \"{sVal}\" → \"{tVal}\""
+                });
+
+                // Lưu thông tin để Update có thể sửa parameter sau
+                ChangedItems.Add(new ChangedItemInfo
+                {
+                    TargetElementId = target.Id,
+                    ParameterName = paramName,
+                    SourceParam = sourceParam,
+                    Pair = pair
+                });
+            }
+        }
+
+        /// <summary>
+        /// So sánh vị trí (LocationPoint) giữa Source item và Target item.
+        /// Nếu tọa độ XYZ khác nhau (tolerance 0.001 ft ≈ 0.3mm), báo "Location Changed".
+        /// </summary>
+        private void CompareLocation(FamilyInstance source, FamilyInstance target,
+            string elementId, string familyName, string sheetName)
+        {
+            var sLoc = source.Location as LocationPoint;
+            var tLoc = target.Location as LocationPoint;
+
+            if (sLoc == null || tLoc == null) return;
+
+            XYZ sPoint = sLoc.Point;
+            XYZ tPoint = tLoc.Point;
+
+            // Tolerance 0.001 ft ≈ 0.3mm
+            const double tolerance = 0.001;
+            double dx = Math.Abs(sPoint.X - tPoint.X);
+            double dy = Math.Abs(sPoint.Y - tPoint.Y);
+            double dz = Math.Abs(sPoint.Z - tPoint.Z);
+
+            if (dx > tolerance || dy > tolerance || dz > tolerance)
+            {
+                // Chuyển sang mm để hiển thị dễ đọc (1 ft = 304.8 mm)
+                string sPos = $"({sPoint.X * 304.8:F1}, {sPoint.Y * 304.8:F1})";
+                string tPos = $"({tPoint.X * 304.8:F1}, {tPoint.Y * 304.8:F1})";
+
+                Discrepancies.Add(new CheckResultItem
+                {
+                    SheetName = sheetName,
+                    IssueType = "Location Changed",
+                    ElementId = elementId,
+                    FamilyName = familyName,
+                    ParameterName = "Location (X, Y)",
+                    SourceValue = sPos,
+                    TargetValue = tPos,
+                    Description = $"Vị trí thay đổi: {sPos} → {tPos} mm"
+                });
+
+                // Lưu thông tin để Update có thể move element sau
+                LocationChangedItems.Add(new LocationChangedItemInfo
+                {
+                    TargetElementId = target.Id,
+                    SourcePoint = sPoint,
+                    TargetPoint = tPoint
+                });
+            }
+        }
+
+        /// <summary>
+        /// Update Target MTO sheet:
+        ///   1. Copy thép bị thiếu (Missing in Target) từ Source → Target + tô đỏ
+        ///   2. Cập nhật parameter thay đổi (Parameter Changed) từ Source → Target + tô đỏ
+        /// </summary>
+        private void RunUpdate(Document doc)
+        {
+            bool hasMissing = MissingItems != null && MissingItems.Count > 0;
+            bool hasChanged = ChangedItems != null && ChangedItems.Count > 0;
+            bool hasExtra = ExtraItemIds != null && ExtraItemIds.Count > 0;
+            bool hasLocationChanged = LocationChangedItems != null && LocationChangedItems.Count > 0;
+
+            if (!hasMissing && !hasChanged && !hasExtra && !hasLocationChanged)
+            {
+                NotifyStatus?.Invoke("Không có sai lệch nào để cập nhật.");
+                return;
+            }
+
+            int copiedItems = 0;
+            int copiedTags = 0;
+            int updatedParams = 0;
+            int deletedItems = 0;
+            int movedItems = 0;
+
+            using (Transaction t = new Transaction(doc, "MTO Check - Update"))
+            {
+                t.Start();
+                try
+                {
+                    // === PHẦN 1: Copy thép bị thiếu ===
+                    if (hasMissing)
+                    {
+                        var groups = MissingItems
+                            .GroupBy(m => new { PairSheet = m.Pair.SheetName, SourceViewId = m.SourceViewId.ToString() })
+                            .ToList();
+
+                        foreach (var group in groups)
+                        {
+                            var firstItem = group.First();
+                            View sourceView = doc.GetElement(firstItem.SourceViewId) as View;
+                            if (sourceView == null) continue;
+
+                            View targetView = FindCorrespondingTargetView(doc, firstItem.Pair, firstItem.SourceViewId);
+                            if (targetView == null) continue;
+
+                            var elementIds = group.Select(m => m.SourceElementId).ToList();
+
+                            // Lưu vị trí gốc của từng element trước khi copy
+                            var sourceLocations = new Dictionary<int, XYZ>();
+                            for (int i = 0; i < elementIds.Count; i++)
+                            {
+                                var srcElem = doc.GetElement(elementIds[i]) as FamilyInstance;
+                                if (srcElem?.Location is LocationPoint srcLoc)
+                                {
+                                    sourceLocations[i] = srcLoc.Point;
+                                }
+                            }
+
+                            var tagIds = FindTagsForElements(doc, sourceView, elementIds);
+
+                            var opts = new CopyPasteOptions();
+                            opts.SetDuplicateTypeNamesHandler(new OverwriteDuplicateHandler());
+
+                            ICollection<ElementId> copiedElementIds;
+                            try
+                            {
+                                copiedElementIds = ElementTransformUtils.CopyElements(
+                                    sourceView, elementIds, targetView, null, opts);
+                                copiedItems += copiedElementIds.Count;
+                            }
+                            catch { continue; }
+
+                            // Sửa vị trí: đảm bảo element mới copy đúng vị trí với Source
+                            var copiedList = copiedElementIds.ToList();
+                            for (int i = 0; i < copiedList.Count && i < elementIds.Count; i++)
+                            {
+                                if (sourceLocations.TryGetValue(i, out XYZ srcPoint))
+                                {
+                                    var newItem = doc.GetElement(copiedList[i]) as FamilyInstance;
+                                    if (newItem?.Location is LocationPoint newLoc)
+                                    {
+                                        XYZ delta = srcPoint - newLoc.Point;
+                                        if (delta.GetLength() > 0.001)
+                                        {
+                                            ElementTransformUtils.MoveElement(doc, copiedList[i], delta);
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Copy tags
+                            if (tagIds.Count > 0)
+                            {
+                                try
+                                {
+                                    var copiedTagIds = ElementTransformUtils.CopyElements(
+                                        sourceView, tagIds, targetView, null, opts);
+                                    copiedTags += copiedTagIds.Count;
+                                }
+                                catch { }
+                            }
+
+                            // Ghi Element ID + Unique ID + tô đỏ cho items mới copy
+                            foreach (var newId in copiedElementIds)
+                            {
+                                var newItem = doc.GetElement(newId) as FamilyInstance;
+                                if (newItem == null) continue;
+
+                                Parameter elemIdParam = newItem.LookupParameter("Element ID");
+                                if (elemIdParam != null && !elemIdParam.IsReadOnly)
+                                {
+#if REVIT2024_OR_GREATER
+                                    elemIdParam.Set(newItem.Id.Value.ToString());
+#else
+                                    elemIdParam.Set(newItem.Id.IntegerValue.ToString());
+#endif
+                                }
+
+                                Parameter uniqueIdParam = newItem.LookupParameter("Unique ID");
+                                if (uniqueIdParam != null && !uniqueIdParam.IsReadOnly)
+                                {
+                                    uniqueIdParam.Set(newItem.UniqueId);
+                                }
+
+                                // Tô màu đỏ
+                                ApplyRedOverride(targetView, newItem.Id);
+                            }
+                        }
+                    }
+
+                    // === PHẦN 2: Cập nhật parameter thay đổi ===
+                    if (hasChanged)
+                    {
+                        // Nhóm theo TargetElementId để tránh set override nhiều lần
+                        var changedByTarget = ChangedItems
+                            .GroupBy(c => c.TargetElementId.ToString())
+                            .ToList();
+
+                        foreach (var group in changedByTarget)
+                        {
+                            foreach (var changed in group)
+                            {
+                                var targetItem = doc.GetElement(changed.TargetElementId) as FamilyInstance;
+                                if (targetItem == null) continue;
+
+                                Parameter tParam = targetItem.LookupParameter(changed.ParameterName);
+                                if (tParam == null || tParam.IsReadOnly) continue;
+
+                                // Copy giá trị từ Source parameter sang Target parameter
+                                try
+                                {
+                                    switch (changed.SourceParam.StorageType)
+                                    {
+                                        case StorageType.Double:
+                                            tParam.Set(changed.SourceParam.AsDouble());
+                                            break;
+                                        case StorageType.Integer:
+                                            tParam.Set(changed.SourceParam.AsInteger());
+                                            break;
+                                        case StorageType.String:
+                                            tParam.Set(changed.SourceParam.AsString() ?? "");
+                                            break;
+                                        case StorageType.ElementId:
+                                            tParam.Set(changed.SourceParam.AsElementId());
+                                            break;
+                                    }
+                                    updatedParams++;
+                                }
+                                catch { }
+                            }
+
+                            // Tô đỏ element có parameter thay đổi
+                            var firstChanged = group.First();
+                            var targetElem = doc.GetElement(firstChanged.TargetElementId);
+                            if (targetElem != null)
+                            {
+                                View ownerView = doc.GetElement(targetElem.OwnerViewId) as View;
+                                if (ownerView != null)
+                                {
+                                    ApplyRedOverride(ownerView, firstChanged.TargetElementId);
+                                }
+                            }
+                        }
+                    }
+
+                    // === PHẦN 3: Xóa thép dư thừa ===
+                    if (hasExtra)
+                    {
+                        foreach (var extraId in ExtraItemIds)
+                        {
+                            try
+                            {
+                                doc.Delete(extraId);
+                                deletedItems++;
+                            }
+                            catch { }
+                        }
+                    }
+
+                    // === PHẦN 4: Di chuyển thép thay đổi vị trí ===
+                    if (hasLocationChanged)
+                    {
+                        foreach (var locItem in LocationChangedItems)
+                        {
+                            try
+                            {
+                                XYZ delta = locItem.SourcePoint - locItem.TargetPoint;
+                                ElementTransformUtils.MoveElement(doc, locItem.TargetElementId, delta);
+                                movedItems++;
+
+                                // Tô đỏ element đã di chuyển
+                                var elem = doc.GetElement(locItem.TargetElementId);
+                                if (elem != null)
+                                {
+                                    View ownerView = doc.GetElement(elem.OwnerViewId) as View;
+                                    if (ownerView != null)
+                                        ApplyRedOverride(ownerView, locItem.TargetElementId);
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+
+                    t.Commit();
+                }
+                catch (Exception ex)
+                {
+                    t.RollBack();
+                    NotifyStatus?.Invoke($"Lỗi: {ex.Message}");
+                    return;
+                }
+            }
+
+            MissingItems.Clear();
+            ChangedItems.Clear();
+            ExtraItemIds.Clear();
+            LocationChangedItems.Clear();
+
+            // Báo kết quả
+            var parts = new List<string>();
+            if (copiedItems > 0) parts.Add($"copy {copiedItems} thép");
+            if (copiedTags > 0) parts.Add($"{copiedTags} tag");
+            if (updatedParams > 0) parts.Add($"cập nhật {updatedParams} parameter");
+            if (deletedItems > 0) parts.Add($"xóa {deletedItems} thép dư");
+            if (movedItems > 0) parts.Add($"di chuyển {movedItems} thép");
+            NotifyStatus?.Invoke($"Đã {string.Join(", ", parts)}. Thép sai lệch được tô đỏ.");
+            OnFixCompleted?.Invoke();
+        }
+
+        /// <summary>
+        /// Tô màu đỏ cho element trong view để dễ phát hiện sai lệch.
+        /// </summary>
+        private void ApplyRedOverride(View view, ElementId elementId)
+        {
+            var redColor = new Color(255, 0, 0);
+            var overrideSettings = new OverrideGraphicSettings();
+            overrideSettings.SetProjectionLineColor(redColor);
+            overrideSettings.SetSurfaceForegroundPatternColor(redColor);
+            overrideSettings.SetCutLineColor(redColor);
+            view.SetElementOverrides(elementId, overrideSettings);
+        }
+
+        /// <summary>
+        /// Tìm target view tương ứng với source view trong target sheet.
+        /// Cách match: lấy danh sách OVER views theo thứ tự từ cả 2 sheet,
+        /// ghép theo index (vì sheet duplicate giữ nguyên thứ tự).
+        /// </summary>
+        private View FindCorrespondingTargetView(Document doc, ViewPair pair, ElementId sourceViewId)
+        {
+            if (!(pair.Source is ViewSheet sourceSheet) || !(pair.Target is ViewSheet targetSheet))
+                return null;
+
+            // Lấy OVER views từ source sheet theo thứ tự
+            var sourceOverViews = GetOverViews(doc, sourceSheet);
+            var targetOverViews = GetOverViews(doc, targetSheet);
+
+            // Tìm index của source view trong danh sách
+            int index = -1;
+            for (int i = 0; i < sourceOverViews.Count; i++)
+            {
+                if (sourceOverViews[i].Id == sourceViewId)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            // Ghép theo index
+            if (index >= 0 && index < targetOverViews.Count)
+            {
+                return targetOverViews[index];
+            }
+
+            // Fallback: trả về target view đầu tiên nếu chỉ có 1
+            if (targetOverViews.Count == 1)
+            {
+                return targetOverViews[0];
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Lấy danh sách OVER views trong một sheet, sắp xếp theo ViewportId.
+        /// </summary>
+        private List<View> GetOverViews(Document doc, ViewSheet sheet)
+        {
+            var overViews = new List<View>();
+            foreach (var vId in sheet.GetAllPlacedViews())
+            {
+                var v = doc.GetElement(vId) as View;
+                if (v != null && v.Name.ToUpper().Contains("OVER"))
+                {
+                    overViews.Add(v);
+                }
+            }
+            return overViews;
+        }
+
+        /// <summary>
+        /// Tìm tất cả IndependentTag trong source view gắn với các element ids cho trước.
+        /// </summary>
+        private List<ElementId> FindTagsForElements(Document doc, View sourceView, List<ElementId> elementIds)
+        {
+            var elementIdSet = new HashSet<string>(elementIds.Select(id => id.ToString()));
+            var tagIds = new List<ElementId>();
+
+            var tags = new FilteredElementCollector(doc, sourceView.Id)
+                .OfClass(typeof(IndependentTag))
+                .Cast<IndependentTag>();
+
+            foreach (var tag in tags)
+            {
+                try
+                {
+                    // Kiểm tra xem tag có gắn với element nào trong danh sách không
+#if REVIT2024_OR_GREATER
+                    var taggedIds = tag.GetTaggedLocalElementIds();
+                    foreach (var taggedId in taggedIds)
+                    {
+                        if (elementIdSet.Contains(taggedId.ToString()))
+                        {
+                            tagIds.Add(tag.Id);
+                            break;
+                        }
+                    }
+#else
+                    var taggedId = tag.TaggedLocalElementId;
+                    if (elementIdSet.Contains(taggedId.ToString()))
+                    {
+                        tagIds.Add(tag.Id);
+                    }
+#endif
+                }
+                catch { }
+            }
+
+            return tagIds;
+        }
+
+
+        /// <summary>
+        /// Thu thập tất cả Detail Component (FamilyInstance) thuộc family "Reo__Reinforcement" từ một View.
+        /// Nếu View là Sheet: lấy từ các placed views có tên chứa "OVER" + items trực tiếp trên sheet.
+        /// Nếu View thường: lấy trực tiếp từ view đó.
+        /// </summary>
+        /// <param name="doc">Document hiện tại</param>
+        /// <param name="view">View hoặc Sheet cần thu thập detail items</param>
+        /// <returns>Danh sách FamilyInstance thuộc family Reo__Reinforcement</returns>
         private List<FamilyInstance> GetDetailItems(Document doc, View view)
         {
             var items = new List<FamilyInstance>();
             if (view is ViewSheet sheet)
             {
+                // Duyệt qua các view được đặt trên Sheet, chỉ lấy view có tên chứa "OVER"
                 var placedViews = sheet.GetAllPlacedViews();
                 foreach (var vId in placedViews)
                 {
@@ -159,7 +733,7 @@ namespace RincoMTO.Tools.MtoCheck
                     }
                 }
                 
-                // Collect items directly placed on sheet
+                // Thu thập items đặt trực tiếp trên Sheet (không nằm trong placed view nào)
                 items.AddRange(new FilteredElementCollector(doc, sheet.Id)
                     .OfClass(typeof(FamilyInstance))
                     .OfCategory(BuiltInCategory.OST_DetailComponents)
@@ -169,6 +743,7 @@ namespace RincoMTO.Tools.MtoCheck
             }
             else
             {
+                // View thường: lấy trực tiếp detail items trong view
                 items.AddRange(new FilteredElementCollector(doc, view.Id)
                     .OfClass(typeof(FamilyInstance))
                     .OfCategory(BuiltInCategory.OST_DetailComponents)
@@ -179,14 +754,112 @@ namespace RincoMTO.Tools.MtoCheck
             return items;
         }
 
+        /// <summary>Tên handler để Revit hiển thị trong log.</summary>
         public string GetName() => "MtoCheckHandler";
     }
 
+    /// <summary>
+    /// Handler để tự động overwrite khi gặp duplicate type names trong CopyElements.
+    /// </summary>
+    public class OverwriteDuplicateHandler : IDuplicateTypeNamesHandler
+    {
+        public DuplicateTypeAction OnDuplicateTypeNamesFound(DuplicateTypeNamesHandlerArgs args)
+        {
+            return DuplicateTypeAction.UseDestinationTypes;
+        }
+    }
+
+    /// <summary>
+    /// Thông tin một thép bị thiếu ở Target, lưu lại để dùng cho Update.
+    /// </summary>
+    public class MissingItemInfo
+    {
+        /// <summary>ElementId của thép ở Source view.</summary>
+        public ElementId SourceElementId { get; set; }
+
+        /// <summary>View chứa thép ở Source (OVER view).</summary>
+        public ElementId SourceViewId { get; set; }
+
+        /// <summary>Cặp sheet Source-Target.</summary>
+        public ViewPair Pair { get; set; }
+    }
+
+    /// <summary>
+    /// Thông tin một parameter thay đổi, lưu lại để dùng cho Update.
+    /// </summary>
+    public class ChangedItemInfo
+    {
+        /// <summary>ElementId của thép ở Target view (cần cập nhật).</summary>
+        public ElementId TargetElementId { get; set; }
+
+        /// <summary>Tên parameter cần cập nhật.</summary>
+        public string ParameterName { get; set; }
+
+        /// <summary>Parameter gốc từ Source (chứa giá trị đúng).</summary>
+        public Parameter SourceParam { get; set; }
+
+        /// <summary>Cặp sheet Source-Target.</summary>
+        public ViewPair Pair { get; set; }
+    }
+
+    /// <summary>
+    /// Thông tin một thép có vị trí thay đổi, lưu lại để dùng cho Update.
+    /// </summary>
+    public class LocationChangedItemInfo
+    {
+        /// <summary>ElementId của thép ở Target view (cần di chuyển).</summary>
+        public ElementId TargetElementId { get; set; }
+
+        /// <summary>Vị trí của thép ở Source view (vị trí đúng).</summary>
+        public XYZ SourcePoint { get; set; }
+
+        /// <summary>Vị trí hiện tại của thép ở Target view (vị trí sai).</summary>
+        public XYZ TargetPoint { get; set; }
+    }
+
+    /// <summary>
+    /// Model chứa thông tin một điểm sai lệch phát hiện được.
+    /// Được hiển thị trong DataGrid của MtoCheckWindow.
+    /// </summary>
     public class CheckResultItem
     {
+        /// <summary>Tên sheet gốc (Source) để phân biệt kết quả từ nhiều sheet.</summary>
+        public string SheetName { get; set; }
+
+        /// <summary>Loại vấn đề: "Missing in Target", "Extra in Target (Orphaned)", hoặc "Parameter Changed".</summary>
         public string IssueType { get; set; }
+
+        /// <summary>Element ID của cây thép (từ Source hoặc Target tùy loại issue).</summary>
         public string ElementId { get; set; }
+
+        /// <summary>Tên Family của detail component (vd: Reo__Reinforcement_L).</summary>
         public string FamilyName { get; set; }
+
+        /// <summary>Tên parameter bị thay đổi (chỉ có khi IssueType = "Parameter Changed").</summary>
+        public string ParameterName { get; set; }
+
+        /// <summary>Giá trị parameter ở Source View (bản gốc).</summary>
+        public string SourceValue { get; set; }
+
+        /// <summary>Giá trị parameter ở Target View (bản sao).</summary>
+        public string TargetValue { get; set; }
+
+        /// <summary>Mô tả chi tiết vấn đề (hiển thị trong cột Description).</summary>
         public string Description { get; set; }
+    }
+
+    /// <summary>
+    /// Cặp Source-Target View để kiểm tra sai lệch.
+    /// </summary>
+    public class ViewPair
+    {
+        /// <summary>View bản gốc (Source).</summary>
+        public View Source { get; set; }
+
+        /// <summary>View bản sao (Target), tự động tìm theo quy tắc tên + "_MTO".</summary>
+        public View Target { get; set; }
+
+        /// <summary>Tên sheet gốc để hiển thị trong kết quả.</summary>
+        public string SheetName { get; set; }
     }
 }
