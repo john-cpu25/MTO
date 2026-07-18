@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RincoMTO")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9621e87fe7a2e280eb8362b6f790efc225c73bf9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9fbc15e2446a11f57648e2a05eb7a5d30f10b62d")]
 [assembly: System.Reflection.AssemblyProductAttribute("RincoMTO")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RincoMTO")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

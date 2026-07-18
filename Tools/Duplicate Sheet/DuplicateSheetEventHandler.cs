@@ -79,7 +79,16 @@ namespace RincoMTO.Tools.DuplicateSheet
                         string newName = MakeUniqueName(baseName, allSheetNames);
                         allSheetNames.Add(newName);
 
-                        string baseNumber = sheet.SheetNumber + "_MTO";
+                        string baseNumber = sheet.SheetNumber;
+                        if (baseNumber.Contains("S9"))
+                        {
+                            baseNumber = baseNumber.Replace("S9", "S10");
+                        }
+                        else
+                        {
+                            baseNumber += "_MTO";
+                        }
+                        
                         string newNumber = MakeUniqueName(baseNumber, allSheetNumbers);
                         allSheetNumbers.Add(newNumber);
 
@@ -189,7 +198,7 @@ namespace RincoMTO.Tools.DuplicateSheet
                                         
                                         copiedViewsCount++;
 
-                                        // Parameter copying has been moved to Copy E&U ID tab
+                                        // Parameter copying has been moved to Copy Data ID tab
                                     }
                                 }
                             }
@@ -220,7 +229,7 @@ namespace RincoMTO.Tools.DuplicateSheet
         private void ExecuteCopyId(UIApplication uiapp, Document doc, List<ViewSheet> selectedSheets)
         {
             int updatedCount = 0;
-            using (Transaction t = new Transaction(doc, "Copy E&U ID"))
+            using (Transaction t = new Transaction(doc, "Copy Data ID"))
             {
                 t.Start();
                 try
@@ -229,11 +238,14 @@ namespace RincoMTO.Tools.DuplicateSheet
 
                     foreach (var sheet in selectedSheets)
                     {
-                        var placedViews = sheet.GetAllPlacedViews();
-                        foreach (var vId in placedViews)
+                        var viewports = sheet.GetAllViewports();
+                        foreach (var vpId in viewports)
                         {
-                            var view = doc.GetElement(vId) as View;
-                            if (view != null && view.Name.ToUpper().Contains("OVER"))
+                            var vp = doc.GetElement(vpId) as Viewport;
+                            if (vp == null) continue;
+
+                            var view = doc.GetElement(vp.ViewId) as View;
+                            if (view != null && !view.IsTemplate)
                             {
                                 var detailItems = new FilteredElementCollector(doc, view.Id)
                                     .OfClass(typeof(FamilyInstance))
@@ -261,6 +273,16 @@ namespace RincoMTO.Tools.DuplicateSheet
                                     }
                                     updatedCount++;
                                 }
+                                
+                                Parameter viewIdParam = view.LookupParameter("View ID");
+                                if (viewIdParam != null && !viewIdParam.IsReadOnly)
+                                {
+#if REVIT2024_OR_GREATER
+                                    viewIdParam.Set(view.Id.Value.ToString());
+#else
+                                    viewIdParam.Set(view.Id.IntegerValue.ToString());
+#endif
+                                }
                             }
                         }
                     }
@@ -274,7 +296,7 @@ namespace RincoMTO.Tools.DuplicateSheet
                 }
             }
 
-            TaskDialog.Show("Success", $"Đã copy Element ID và Unique ID thành công cho {updatedCount} thép trong các sheet đã chọn.");
+            TaskDialog.Show("Success", $"Đã copy Element ID, Unique ID và View ID thành công cho {updatedCount} thép trong các sheet đã chọn.");
         }
 
         private void ExecuteCreateParameters(UIApplication uiapp, Document doc)
@@ -294,7 +316,7 @@ namespace RincoMTO.Tools.DuplicateSheet
                     return;
                 }
             }
-            TaskDialog.Show("Success", "Đã tạo 2 parameter Element ID và Unique ID thành công.");
+            TaskDialog.Show("Success", "Đã tạo 3 parameter Element ID, Unique ID và View ID thành công.");
         }
 
         public string GetName()
@@ -324,12 +346,14 @@ namespace RincoMTO.Tools.DuplicateSheet
         private void CreateDetailItemParameters(Document doc, UIApplication uiapp)
         {
             Category detailItemCat = Category.GetCategory(doc, BuiltInCategory.OST_DetailComponents);
-            if (detailItemCat == null) return;
+            Category viewCat = Category.GetCategory(doc, BuiltInCategory.OST_Views);
+            if (detailItemCat == null || viewCat == null) return;
 
             BindingMap bindingMap = doc.ParameterBindings;
             DefinitionBindingMapIterator it = bindingMap.ForwardIterator();
             bool hasElementId = false;
             bool hasUniqueId = false;
+            bool hasViewId = false;
             it.Reset();
             while (it.MoveNext())
             {
@@ -352,10 +376,18 @@ namespace RincoMTO.Tools.DuplicateSheet
                             hasUniqueId = true;
                         }
                     }
+                    else if (def.Name.Equals("View ID", StringComparison.OrdinalIgnoreCase))
+                    {
+                        ElementBinding binding = it.Current as ElementBinding;
+                        if (binding != null && binding.Categories.Contains(viewCat))
+                        {
+                            hasViewId = true;
+                        }
+                    }
                 }
             }
 
-            if (hasElementId && hasUniqueId) return;
+            if (hasElementId && hasUniqueId && hasViewId) return;
 
             Autodesk.Revit.ApplicationServices.Application app = uiapp.Application;
             string originalSharedParamFile = app.SharedParametersFilename;
@@ -403,13 +435,32 @@ namespace RincoMTO.Tools.DuplicateSheet
 #endif
                     }
 
+                    if (!hasViewId)
+                    {
+                        CategorySet viewCatSet = app.Create.NewCategorySet();
+                        viewCatSet.Insert(viewCat);
+                        
+                        ExternalDefinitionCreationOptions opt = new ExternalDefinitionCreationOptions("View ID", SpecTypeId.String.Text);
+                        opt.Visible = true;
+                        opt.UserModifiable = true;
+                        Definition externalDef = group.Definitions.Create(opt);
+                        InstanceBinding instanceBinding = app.Create.NewInstanceBinding(viewCatSet);
+#if REVIT2024_OR_GREATER
+                        doc.ParameterBindings.Insert(externalDef, instanceBinding, GroupTypeId.Text);
+#else
+                        doc.ParameterBindings.Insert(externalDef, instanceBinding, BuiltInParameterGroup.PG_TEXT);
+#endif
+                    }
+
                     // Set allow vary between groups
                     DefinitionBindingMapIterator itAfter = doc.ParameterBindings.ForwardIterator();
                     itAfter.Reset();
                     while (itAfter.MoveNext())
                     {
                         InternalDefinition intDef = itAfter.Key as InternalDefinition;
-                        if (intDef != null && (intDef.Name.Equals("Element ID", StringComparison.OrdinalIgnoreCase) || intDef.Name.Equals("Unique ID", StringComparison.OrdinalIgnoreCase)))
+                        if (intDef != null && (intDef.Name.Equals("Element ID", StringComparison.OrdinalIgnoreCase) || 
+                            intDef.Name.Equals("Unique ID", StringComparison.OrdinalIgnoreCase) || 
+                            intDef.Name.Equals("View ID", StringComparison.OrdinalIgnoreCase)))
                         {
                             try
                             {

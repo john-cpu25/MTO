@@ -6011,24 +6011,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Nhan\\.nuget\\packages\\": {},
+    "C:\\Users\\nguye\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Nhan\\OneDrive - Rincovitch\\00. Nhan\\CSharp\\RincoMTO\\MTO\\RincoMTO.csproj",
+      "projectUniqueName": "C:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj",
       "projectName": "RincoMTO",
-      "projectPath": "C:\\Users\\Nhan\\OneDrive - Rincovitch\\00. Nhan\\CSharp\\RincoMTO\\MTO\\RincoMTO.csproj",
-      "packagesPath": "C:\\Users\\Nhan\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Nhan\\OneDrive - Rincovitch\\00. Nhan\\CSharp\\RincoMTO\\MTO\\obj\\",
+      "projectPath": "C:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj",
+      "packagesPath": "C:\\Users\\nguye\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\obj\\",
       "projectStyle": "PackageReference",
       "crossTargeting": true,
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Nhan\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\nguye\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -6059,9 +6059,8 @@
       "restoreAuditProperties": {
         "enableAudit": "true",
         "auditLevel": "low",
-        "auditMode": "all"
-      },
-      "SdkAnalysisLevel": "9.0.100"
+        "auditMode": "direct"
+      }
     },
     "frameworks": {
       "net8.0-windows7.0": {
@@ -6111,7 +6110,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.419/PortableRuntimeIdentifierGraph.json"
       },
       "net48": {
         "targetAlias": "net48",
@@ -6141,7 +6140,7 @@
             "version": "[8.0.0, )"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.419\\RuntimeIdentifierGraph.json"
       }
     }
   },
@@ -6150,7 +6149,7 @@
       "code": "NU1603",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "RincoMTO depends on Nice3point.Revit.Api.RevitAPI (>= 2025.0.0) but Nice3point.Revit.Api.RevitAPI 2025.0.0 was not found. Nice3point.Revit.Api.RevitAPI 2025.0.2 was resolved instead.",
+      "message": "RincoMTO depends on Nice3point.Revit.Api.RevitAPI (>= 2025.0.0) but Nice3point.Revit.Api.RevitAPI 2025.0.0 was not found. An approximate best match of Nice3point.Revit.Api.RevitAPI 2025.0.2 was resolved.",
       "libraryId": "Nice3point.Revit.Api.RevitAPI",
       "targetGraphs": [
         "net8.0-windows7.0"
@@ -6160,31 +6159,9 @@
       "code": "NU1603",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "RincoMTO depends on Nice3point.Revit.Api.RevitAPIUI (>= 2025.0.0) but Nice3point.Revit.Api.RevitAPIUI 2025.0.0 was not found. Nice3point.Revit.Api.RevitAPIUI 2025.0.2 was resolved instead.",
+      "message": "RincoMTO depends on Nice3point.Revit.Api.RevitAPIUI (>= 2025.0.0) but Nice3point.Revit.Api.RevitAPIUI 2025.0.0 was not found. An approximate best match of Nice3point.Revit.Api.RevitAPIUI 2025.0.2 was resolved.",
       "libraryId": "Nice3point.Revit.Api.RevitAPIUI",
       "targetGraphs": [
-        "net8.0-windows7.0"
-      ]
-    },
-    {
-      "code": "NU1903",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Package 'System.IO.Packaging' 6.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-f32c-w444-8ppv",
-      "libraryId": "System.IO.Packaging",
-      "targetGraphs": [
-        ".NETFramework,Version=v4.8",
-        "net8.0-windows7.0"
-      ]
-    },
-    {
-      "code": "NU1903",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Package 'System.IO.Packaging' 6.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-qj66-m88j-hmgj",
-      "libraryId": "System.IO.Packaging",
-      "targetGraphs": [
-        ".NETFramework,Version=v4.8",
         "net8.0-windows7.0"
       ]
     },

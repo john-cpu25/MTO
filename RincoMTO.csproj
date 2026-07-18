@@ -76,6 +76,7 @@
     <MakeDir Directories="$(TargetDir)Resources" />
     <ItemGroup>
       <ToolIcons Include="$(ProjectDir)Tools\**\*.png" />
+      <ToolIcons Include="$(ProjectDir)Resources\**\*.png" />
     </ItemGroup>
     <Copy SourceFiles="@(ToolIcons)" DestinationFolder="$(BundleFolder)\Contents\Resources\" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(ToolIcons)" DestinationFolder="$(TargetDir)Resources\" SkipUnchangedFiles="true" />

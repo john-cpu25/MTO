@@ -12,6 +12,59 @@
         </Grid.RowDefinitions>
 
         <TabControl x:Name="tabControl" Grid.Row="0" Margin="0,0,0,10">
+            <TabItem Header="Copy Data ID">
+                <Grid Margin="15">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Text="1. Click here to manually create parameters if they don't exist yet:" TextWrapping="Wrap" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
+                    <Button x:Name="btnCreateParams" Grid.Row="1" Content="Tạo Parameters (Element ID, Unique ID, View ID)" Height="30" Width="280" HorizontalAlignment="Left" Click="BtnCreateParams_Click" Margin="0,0,0,15"/>
+                    
+                    <TextBlock Grid.Row="2" Text="2. Select sheets below, then click OK to copy Element ID, Unique ID and View ID to the rebars inside the original views on selected sheets:" TextWrapping="Wrap" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
+                    
+                    <ListBox x:Name="lbSheetsCopyID" Grid.Row="3"
+                             BorderBrush="#CCCCCC" BorderThickness="1" Background="White"
+                             SelectionMode="Multiple">
+                        <ListBox.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="GroupItem">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="GroupItem">
+                                                    <Expander IsExpanded="True" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+                                                        <Expander.Header>
+                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="#374151" Margin="2,0"/>
+                                                        </Expander.Header>
+                                                        <ItemsPresenter Margin="20,0,0,0"/>
+                                                    </Expander>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                            </GroupStyle>
+                        </ListBox.GroupStyle>
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ListBoxItem_PreviewMouseLeftButtonDown"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsSelected}" Margin="2" IsHitTestVisible="False"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Sheets">
                 <Grid Margin="5">
                     <Grid.RowDefinitions>
@@ -76,59 +129,6 @@
                     <TextBlock Text="View Type (for duplicated views):" FontWeight="Bold" Margin="0,0,0,5"/>
                     <ComboBox x:Name="cboViewType" IsEditable="True" ToolTip="Select or type a new view type" Height="25"/>
                 </StackPanel>
-            </TabItem>
-
-            <TabItem Header="Copy E&amp;U ID">
-                <Grid Margin="15">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    
-                    <TextBlock Text="1. Click here to manually create parameters if they don't exist yet:" TextWrapping="Wrap" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
-                    <Button x:Name="btnCreateParams" Grid.Row="1" Content="Tạo Parameters (Element ID, Unique ID)" Height="30" Width="250" HorizontalAlignment="Left" Click="BtnCreateParams_Click" Margin="0,0,0,15"/>
-                    
-                    <TextBlock Grid.Row="2" Text="2. Select sheets below, then click OK to copy Element ID and Unique ID to the rebars inside views containing 'OVER':" TextWrapping="Wrap" FontSize="12" Foreground="#374151" Margin="0,0,0,5"/>
-                    
-                    <ListBox x:Name="lbSheetsCopyID" Grid.Row="3"
-                             BorderBrush="#CCCCCC" BorderThickness="1" Background="White"
-                             SelectionMode="Multiple">
-                        <ListBox.GroupStyle>
-                            <GroupStyle>
-                                <GroupStyle.ContainerStyle>
-                                    <Style TargetType="GroupItem">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="GroupItem">
-                                                    <Expander IsExpanded="True" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
-                                                        <Expander.Header>
-                                                            <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="#374151" Margin="2,0"/>
-                                                        </Expander.Header>
-                                                        <ItemsPresenter Margin="20,0,0,0"/>
-                                                    </Expander>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </GroupStyle.ContainerStyle>
-                            </GroupStyle>
-                        </ListBox.GroupStyle>
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem">
-                                <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                <EventSetter Event="PreviewMouseLeftButtonDown" Handler="ListBoxItem_PreviewMouseLeftButtonDown"/>
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <CheckBox Content="{Binding DisplayName}" IsChecked="{Binding IsSelected}" Margin="2" IsHitTestVisible="False"/>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Grid>
             </TabItem>
         </TabControl>
 

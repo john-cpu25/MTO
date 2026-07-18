@@ -36,6 +36,9 @@ namespace RincoMTO.Tools.MtoCheck
         /// <summary>Danh sách thép có vị trí thay đổi (lưu lại sau Check để dùng cho Update).</summary>
         public List<LocationChangedItemInfo> LocationChangedItems { get; private set; } = new List<LocationChangedItemInfo>();
 
+        /// <summary>Danh sách view bị thiếu ở Target (lưu lại sau Check để copy khi Update).</summary>
+        public List<MissingViewInfo> MissingViews { get; private set; } = new List<MissingViewInfo>();
+
         /// <summary>Callback thông báo trạng thái cho UI (status message).</summary>
         public Action<string> NotifyStatus { get; set; }
 
@@ -64,6 +67,10 @@ namespace RincoMTO.Tools.MtoCheck
                 {
                     RunUpdate(doc);
                 }
+                else if (Action == "ResetColors")
+                {
+                    RunResetColors(doc);
+                }
             }
             catch (Exception ex)
             {
@@ -84,19 +91,66 @@ namespace RincoMTO.Tools.MtoCheck
 
             Discrepancies.Clear();
             MissingItems.Clear();
+            MissingViews.Clear();
             ChangedItems.Clear();
             ExtraItemIds.Clear();
             LocationChangedItems.Clear();
 
-            // Duyệt từng cặp Source-Target và kiểm tra
-            foreach (var pair in ViewPairs)
+            using (Transaction t = new Transaction(doc, "MTO Check - Apply Colors"))
             {
-                NotifyStatus?.Invoke($"Đang kiểm tra: {pair.SheetName}...");
-                RunCheckForPair(doc, pair);
+                t.Start();
+                try
+                {
+                    // Duyệt từng cặp Source-Target và kiểm tra
+                    foreach (var pair in ViewPairs)
+                    {
+                        NotifyStatus?.Invoke($"Đang kiểm tra: {pair.SheetName}...");
+                        RunCheckForPair(doc, pair);
+                    }
+                    t.Commit();
+                }
+                catch (Exception ex)
+                {
+                    t.RollBack();
+                    NotifyStatus?.Invoke($"Lỗi khi kiểm tra: {ex.Message}");
+                    return;
+                }
             }
 
             NotifyStatus?.Invoke($"Kiểm tra hoàn tất {ViewPairs.Count} sheet. Phát hiện {Discrepancies.Count} điểm sai lệch.");
             OnCheckCompleted?.Invoke();
+        }
+
+        private void RunResetColors(Document doc)
+        {
+            if (ViewPairs == null || ViewPairs.Count == 0) return;
+
+            using (Transaction t = new Transaction(doc, "MTO Check - Reset Colors"))
+            {
+                t.Start();
+                try
+                {
+                    foreach (var pair in ViewPairs)
+                    {
+                        var targetItems = GetDetailItems(doc, pair.Target);
+                        foreach (var item in targetItems)
+                        {
+                            View targetView = doc.GetElement(item.OwnerViewId) as View;
+                            if (targetView != null)
+                            {
+                                targetView.SetElementOverrides(item.Id, new OverrideGraphicSettings());
+                            }
+                        }
+                    }
+                    t.Commit();
+                    NotifyStatus?.Invoke("Đã reset màu về trạng thái ban đầu.");
+                }
+                catch (Exception ex)
+                {
+                    t.RollBack();
+                    NotifyStatus?.Invoke($"Lỗi khi reset màu: {ex.Message}");
+                }
+            }
         }
 
         /// <summary>
@@ -160,9 +214,44 @@ namespace RincoMTO.Tools.MtoCheck
                 if (!sourceByElementId.ContainsKey(eId)) sourceByElementId[eId] = item;
             }
 
+            // 0. Check for Missing Views (Viewports)
+            var sourceOverViews = GetOverViews(doc, pair.Source as ViewSheet);
+            var targetOverViews = GetOverViews(doc, pair.Target as ViewSheet);
+            
+            var missingViewIds = new HashSet<ElementId>();
+            foreach (var sv in sourceOverViews)
+            {
+                View correspondingTv = FindCorrespondingTargetView(doc, pair, sv.Id);
+                if (correspondingTv == null)
+                {
+                    missingViewIds.Add(sv.Id);
+                    
+                    Discrepancies.Add(new CheckResultItem
+                    {
+                        SheetName = sheetName,
+                        IssueType = "Missing View",
+                        ElementId = sv.Id.ToString(),
+                        FamilyName = "Viewport",
+                        Description = $"View '{sv.Name}' chưa được copy sang sheet MTO."
+                    });
+                    
+                    MissingViews.Add(new MissingViewInfo
+                    {
+                        SourceViewId = sv.Id,
+                        Pair = pair
+                    });
+                }
+            }
+
             // 1. Check for MISSING items in Target View (Exist in Source, not in Target)
             foreach (var sItem in sourceItems)
             {
+                if (missingViewIds.Contains(sItem.OwnerViewId))
+                {
+                    // Bỏ qua các thép thuộc View đang bị thiếu hoàn toàn (vì sẽ copy nguyên View)
+                    continue;
+                }
+
                 string sUniqueId = GetTrackingUniqueId(sItem);
                 string sElemId = GetTrackingElementId(sItem);
 
@@ -209,6 +298,11 @@ namespace RincoMTO.Tools.MtoCheck
 
                     // Lưu ElementId để xóa khi Update
                     ExtraItemIds.Add(tItem.Id);
+                    
+                    // Tô đỏ thép dư thừa (bị xóa ở bản gốc)
+                    View targetView = doc.GetElement(tItem.OwnerViewId) as View;
+                    if (targetView != null)
+                        ApplyColorOverride(targetView, tItem.Id, new Color(255, 0, 0));
                 }
             }
 
@@ -217,7 +311,7 @@ namespace RincoMTO.Tools.MtoCheck
             // Bỏ qua các parameter không cần so sánh giữa 2 bản vẽ
             var skipParams = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                "Unique ID", "IfcGUID", "Mark", "Workset"
+                "Unique ID", "IfcGUID", "Mark", "Workset", "Edited by"
             };
 
             foreach (var sItem in sourceItems)
@@ -240,7 +334,7 @@ namespace RincoMTO.Tools.MtoCheck
                         // Bỏ qua parameter tracking (dùng để match, không cần so sánh)
                         if (skipParams.Contains(paramName)) continue;
 
-                        CompareParameter(sParam, tItem, sElemId, sItem.Symbol.FamilyName, sheetName, pair);
+                        CompareParameter(sParam, sItem, tItem, sElemId, sItem.Symbol.FamilyName, sheetName, pair);
                     }
 
                     // So sánh vị trí (LocationPoint) giữa Source và Target
@@ -254,7 +348,7 @@ namespace RincoMTO.Tools.MtoCheck
         /// Sử dụng AsValueString() (giá trị có đơn vị, vd: "12 mm") với fallback AsString().
         /// Nếu giá trị khác nhau, thêm CheckResultItem và lưu ChangedItemInfo để Update sau.
         /// </summary>
-        private void CompareParameter(Parameter sourceParam, FamilyInstance target,
+        private void CompareParameter(Parameter sourceParam, FamilyInstance source, FamilyInstance target,
             string elementId, string familyName, string sheetName, ViewPair pair)
         {
             string paramName = sourceParam.Definition.Name;
@@ -286,11 +380,19 @@ namespace RincoMTO.Tools.MtoCheck
                 // Lưu thông tin để Update có thể sửa parameter sau
                 ChangedItems.Add(new ChangedItemInfo
                 {
+                    SourceElementId = source.Id,
+                    SourceViewId = source.OwnerViewId,
                     TargetElementId = target.Id,
                     ParameterName = paramName,
                     SourceParam = sourceParam,
                     Pair = pair
                 });
+                
+                // Tô xanh lá cây thép bị thay đổi parameter
+                Document doc = target.Document;
+                View targetView = doc.GetElement(target.OwnerViewId) as View;
+                if (targetView != null)
+                    ApplyColorOverride(targetView, target.Id, new Color(0, 255, 0));
             }
         }
 
@@ -336,10 +438,18 @@ namespace RincoMTO.Tools.MtoCheck
                 // Lưu thông tin để Update có thể move element sau
                 LocationChangedItems.Add(new LocationChangedItemInfo
                 {
+                    SourceElementId = source.Id,
+                    SourceViewId = source.OwnerViewId,
                     TargetElementId = target.Id,
                     SourcePoint = sPoint,
                     TargetPoint = tPoint
                 });
+                
+                // Tô xanh lá cây thép bị thay đổi vị trí
+                Document doc = target.Document;
+                View targetView = doc.GetElement(target.OwnerViewId) as View;
+                if (targetView != null)
+                    ApplyColorOverride(targetView, target.Id, new Color(0, 255, 0));
             }
         }
 
@@ -350,12 +460,13 @@ namespace RincoMTO.Tools.MtoCheck
         /// </summary>
         private void RunUpdate(Document doc)
         {
+            bool hasMissingView = MissingViews != null && MissingViews.Count > 0;
             bool hasMissing = MissingItems != null && MissingItems.Count > 0;
             bool hasChanged = ChangedItems != null && ChangedItems.Count > 0;
             bool hasExtra = ExtraItemIds != null && ExtraItemIds.Count > 0;
             bool hasLocationChanged = LocationChangedItems != null && LocationChangedItems.Count > 0;
 
-            if (!hasMissing && !hasChanged && !hasExtra && !hasLocationChanged)
+            if (!hasMissingView && !hasMissing && !hasChanged && !hasExtra && !hasLocationChanged)
             {
                 NotifyStatus?.Invoke("Không có sai lệch nào để cập nhật.");
                 return;
@@ -367,11 +478,70 @@ namespace RincoMTO.Tools.MtoCheck
             int deletedItems = 0;
             int movedItems = 0;
 
-            using (Transaction t = new Transaction(doc, "MTO Check - Update"))
+            using (Transaction t = new Transaction(doc, "MTO Check - Fix All (Update)"))
             {
                 t.Start();
                 try
                 {
+                    // === PHẦN 0: Duplicate View thiếu ===
+                    if (MissingViews.Count > 0)
+                    {
+                        foreach (var mv in MissingViews)
+                        {
+                            View sourceView = doc.GetElement(mv.SourceViewId) as View;
+                            ViewSheet sourceSheet = mv.Pair.Source as ViewSheet;
+                            ViewSheet targetSheet = mv.Pair.Target as ViewSheet;
+                            if (sourceView == null || sourceSheet == null || targetSheet == null) continue;
+
+                            Viewport sourceVp = null;
+                            foreach (ElementId vpId in sourceSheet.GetAllViewports())
+                            {
+                                Viewport vp = doc.GetElement(vpId) as Viewport;
+                                if (vp != null && vp.ViewId == sourceView.Id)
+                                {
+                                    sourceVp = vp;
+                                    break;
+                                }
+                            }
+                            if (sourceVp == null) continue;
+
+                            if (sourceView.CanViewBeDuplicated(ViewDuplicateOption.WithDetailing))
+                            {
+                                try
+                                {
+                                    ElementId newViewId = sourceView.Duplicate(ViewDuplicateOption.WithDetailing);
+                                    View newView = doc.GetElement(newViewId) as View;
+
+                                    string newViewName = sourceView.Name + "_MTO";
+                                    var allViewNames = new HashSet<string>(
+                                        new FilteredElementCollector(doc)
+                                        .OfClass(typeof(View))
+                                        .Cast<View>()
+                                        .Select(v => v.Name));
+                                    
+                                    if (allViewNames.Contains(newViewName))
+                                    {
+                                        int i = 1;
+                                        while (allViewNames.Contains($"{newViewName}_{i}")) i++;
+                                        newViewName = $"{newViewName}_{i}";
+                                    }
+                                    newView.Name = newViewName;
+
+                                    Viewport newVp = Viewport.Create(doc, targetSheet.Id, newView.Id, sourceVp.GetBoxCenter());
+                                    
+                                    if (sourceVp.GetTypeId() != ElementId.InvalidElementId)
+                                    {
+                                        try { newVp.ChangeTypeId(sourceVp.GetTypeId()); } catch { }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    NotifyStatus?.Invoke($"Lỗi khi copy view {sourceView.Name}: {ex.Message}");
+                                }
+                            }
+                        }
+                    }
+
                     // === PHẦN 1: Copy thép bị thiếu ===
                     if (hasMissing)
                     {
@@ -467,8 +637,8 @@ namespace RincoMTO.Tools.MtoCheck
                                     uniqueIdParam.Set(newItem.UniqueId);
                                 }
 
-                                // Tô màu đỏ
-                                ApplyRedOverride(targetView, newItem.Id);
+                                // Tô màu xanh dương cho item mới copy
+                                ApplyColorOverride(targetView, newItem.Id, new Color(0, 0, 255));
                             }
                         }
                     }
@@ -514,7 +684,7 @@ namespace RincoMTO.Tools.MtoCheck
                                 catch { }
                             }
 
-                            // Tô đỏ element có parameter thay đổi
+                            // Giữ màu xanh lá cho element có parameter thay đổi
                             var firstChanged = group.First();
                             var targetElem = doc.GetElement(firstChanged.TargetElementId);
                             if (targetElem != null)
@@ -522,7 +692,8 @@ namespace RincoMTO.Tools.MtoCheck
                                 View ownerView = doc.GetElement(targetElem.OwnerViewId) as View;
                                 if (ownerView != null)
                                 {
-                                    ApplyRedOverride(ownerView, firstChanged.TargetElementId);
+                                    ApplyColorOverride(ownerView, firstChanged.TargetElementId, new Color(0, 255, 0));
+                                    UpdateTagLocation(doc, firstChanged.SourceElementId, firstChanged.TargetElementId, firstChanged.SourceViewId, ownerView.Id);
                                 }
                             }
                         }
@@ -553,13 +724,16 @@ namespace RincoMTO.Tools.MtoCheck
                                 ElementTransformUtils.MoveElement(doc, locItem.TargetElementId, delta);
                                 movedItems++;
 
-                                // Tô đỏ element đã di chuyển
+                                // Giữ màu xanh lá cho element đã di chuyển
                                 var elem = doc.GetElement(locItem.TargetElementId);
                                 if (elem != null)
                                 {
                                     View ownerView = doc.GetElement(elem.OwnerViewId) as View;
                                     if (ownerView != null)
-                                        ApplyRedOverride(ownerView, locItem.TargetElementId);
+                                    {
+                                        ApplyColorOverride(ownerView, locItem.TargetElementId, new Color(0, 255, 0));
+                                        UpdateTagLocation(doc, locItem.SourceElementId, locItem.TargetElementId, locItem.SourceViewId, ownerView.Id);
+                                    }
                                 }
                             }
                             catch { }
@@ -593,55 +767,65 @@ namespace RincoMTO.Tools.MtoCheck
         }
 
         /// <summary>
-        /// Tô màu đỏ cho element trong view để dễ phát hiện sai lệch.
+        /// Tô màu cho element trong view để dễ phát hiện sai lệch.
         /// </summary>
-        private void ApplyRedOverride(View view, ElementId elementId)
+        private void ApplyColorOverride(View view, ElementId elementId, Color color)
         {
-            var redColor = new Color(255, 0, 0);
             var overrideSettings = new OverrideGraphicSettings();
-            overrideSettings.SetProjectionLineColor(redColor);
-            overrideSettings.SetSurfaceForegroundPatternColor(redColor);
-            overrideSettings.SetCutLineColor(redColor);
+            overrideSettings.SetProjectionLineColor(color);
+            overrideSettings.SetSurfaceForegroundPatternColor(color);
+            overrideSettings.SetCutLineColor(color);
             view.SetElementOverrides(elementId, overrideSettings);
         }
 
         /// <summary>
         /// Tìm target view tương ứng với source view trong target sheet.
-        /// Cách match: lấy danh sách OVER views theo thứ tự từ cả 2 sheet,
-        /// ghép theo index (vì sheet duplicate giữ nguyên thứ tự).
+        /// Cách match: Ưu tiên theo tên, sau đó fallback theo tọa độ Viewport.
         /// </summary>
         private View FindCorrespondingTargetView(Document doc, ViewPair pair, ElementId sourceViewId)
         {
-            if (!(pair.Source is ViewSheet sourceSheet) || !(pair.Target is ViewSheet targetSheet))
+            if (sourceViewId == ElementId.InvalidElementId || !(pair.Source is ViewSheet sourceSheet) || !(pair.Target is ViewSheet targetSheet))
                 return null;
 
-            // Lấy OVER views từ source sheet theo thứ tự
-            var sourceOverViews = GetOverViews(doc, sourceSheet);
+            View sourceView = doc.GetElement(sourceViewId) as View;
+            if (sourceView == null) return null;
+
             var targetOverViews = GetOverViews(doc, targetSheet);
 
-            // Tìm index của source view trong danh sách
-            int index = -1;
-            for (int i = 0; i < sourceOverViews.Count; i++)
+            // 1. Match by EXACT name + "_MTO"
+            string expectedMtoName = sourceView.Name + "_MTO";
+            var exactMatch = targetOverViews.FirstOrDefault(v => v.Name.Equals(expectedMtoName, StringComparison.OrdinalIgnoreCase));
+            if (exactMatch != null) return exactMatch;
+
+            // 2. Match by Prefix (e.g. source is "DAM 1 OVER", target is "DAM 1 OVER Copy 1")
+            var prefixMatch = targetOverViews.FirstOrDefault(v => v.Name.StartsWith(sourceView.Name, StringComparison.OrdinalIgnoreCase));
+            if (prefixMatch != null) return prefixMatch;
+
+            // 3. Match by Viewport coordinates
+            Viewport sourceVp = GetViewportForView(doc, sourceSheet, sourceViewId);
+            if (sourceVp != null)
             {
-                if (sourceOverViews[i].Id == sourceViewId)
+                XYZ sourceCenter = sourceVp.GetBoxCenter();
+                foreach (var tv in targetOverViews)
                 {
-                    index = i;
-                    break;
+                    Viewport targetVp = GetViewportForView(doc, targetSheet, tv.Id);
+                    if (targetVp != null && targetVp.GetBoxCenter().IsAlmostEqualTo(sourceCenter, 0.01))
+                    {
+                        return tv;
+                    }
                 }
             }
 
-            // Ghép theo index
-            if (index >= 0 && index < targetOverViews.Count)
-            {
-                return targetOverViews[index];
-            }
+            return null;
+        }
 
-            // Fallback: trả về target view đầu tiên nếu chỉ có 1
-            if (targetOverViews.Count == 1)
+        private Viewport GetViewportForView(Document doc, ViewSheet sheet, ElementId viewId)
+        {
+            foreach (var vpId in sheet.GetAllViewports())
             {
-                return targetOverViews[0];
+                if (doc.GetElement(vpId) is Viewport vp && vp.ViewId == viewId)
+                    return vp;
             }
-
             return null;
         }
 
@@ -679,7 +863,6 @@ namespace RincoMTO.Tools.MtoCheck
                 try
                 {
                     // Kiểm tra xem tag có gắn với element nào trong danh sách không
-#if REVIT2024_OR_GREATER
                     var taggedIds = tag.GetTaggedLocalElementIds();
                     foreach (var taggedId in taggedIds)
                     {
@@ -689,13 +872,6 @@ namespace RincoMTO.Tools.MtoCheck
                             break;
                         }
                     }
-#else
-                    var taggedId = tag.TaggedLocalElementId;
-                    if (elementIdSet.Contains(taggedId.ToString()))
-                    {
-                        tagIds.Add(tag.Id);
-                    }
-#endif
                 }
                 catch { }
             }
@@ -703,6 +879,35 @@ namespace RincoMTO.Tools.MtoCheck
             return tagIds;
         }
 
+
+        /// <summary>
+        /// Đồng bộ vị trí của Tag từ Source sang Target.
+        /// </summary>
+        private void UpdateTagLocation(Document doc, ElementId sourceElementId, ElementId targetElementId, ElementId sourceViewId, ElementId targetViewId)
+        {
+            View sourceView = doc.GetElement(sourceViewId) as View;
+            View targetView = doc.GetElement(targetViewId) as View;
+            if (sourceView == null || targetView == null) return;
+
+            var sourceTags = FindTagsForElements(doc, sourceView, new List<ElementId> { sourceElementId });
+            var targetTags = FindTagsForElements(doc, targetView, new List<ElementId> { targetElementId });
+
+            if (sourceTags.Count > 0 && targetTags.Count > 0)
+            {
+                var sourceTag = doc.GetElement(sourceTags.First()) as IndependentTag;
+                var targetTag = doc.GetElement(targetTags.First()) as IndependentTag;
+
+                if (sourceTag != null && targetTag != null)
+                {
+                    try
+                    {
+                        targetTag.HasLeader = sourceTag.HasLeader;
+                        targetTag.TagHeadPosition = sourceTag.TagHeadPosition;
+                    }
+                    catch { }
+                }
+            }
+        }
 
         /// <summary>
         /// Thu thập tất cả Detail Component (FamilyInstance) thuộc family "Reo__Reinforcement" từ một View.
@@ -770,6 +975,15 @@ namespace RincoMTO.Tools.MtoCheck
     }
 
     /// <summary>
+    /// Thông tin một view bị thiếu ở Target, lưu lại để dùng cho Update.
+    /// </summary>
+    public class MissingViewInfo
+    {
+        public ElementId SourceViewId { get; set; }
+        public ViewPair Pair { get; set; }
+    }
+
+    /// <summary>
     /// Thông tin một thép bị thiếu ở Target, lưu lại để dùng cho Update.
     /// </summary>
     public class MissingItemInfo
@@ -785,20 +999,15 @@ namespace RincoMTO.Tools.MtoCheck
     }
 
     /// <summary>
-    /// Thông tin một parameter thay đổi, lưu lại để dùng cho Update.
+    /// Thông bộ một parameter thay đổi, lưu lại để dùng cho Update.
     /// </summary>
     public class ChangedItemInfo
     {
-        /// <summary>ElementId của thép ở Target view (cần cập nhật).</summary>
+        public ElementId SourceElementId { get; set; }
+        public ElementId SourceViewId { get; set; }
         public ElementId TargetElementId { get; set; }
-
-        /// <summary>Tên parameter cần cập nhật.</summary>
         public string ParameterName { get; set; }
-
-        /// <summary>Parameter gốc từ Source (chứa giá trị đúng).</summary>
         public Parameter SourceParam { get; set; }
-
-        /// <summary>Cặp sheet Source-Target.</summary>
         public ViewPair Pair { get; set; }
     }
 
@@ -807,13 +1016,10 @@ namespace RincoMTO.Tools.MtoCheck
     /// </summary>
     public class LocationChangedItemInfo
     {
-        /// <summary>ElementId của thép ở Target view (cần di chuyển).</summary>
+        public ElementId SourceElementId { get; set; }
+        public ElementId SourceViewId { get; set; }
         public ElementId TargetElementId { get; set; }
-
-        /// <summary>Vị trí của thép ở Source view (vị trí đúng).</summary>
         public XYZ SourcePoint { get; set; }
-
-        /// <summary>Vị trí hiện tại của thép ở Target view (vị trí sai).</summary>
         public XYZ TargetPoint { get; set; }
     }
 

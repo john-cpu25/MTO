@@ -29,22 +29,14 @@ namespace RincoMTO.Core
 
             // Define Panels
             RibbonPanel generalPanel = GetOrCreatePanel(application, tabName, "General");
-            // RibbonPanel modelingPanel = GetOrCreatePanel(application, tabName, "Modeling");
 
             // Add Buttons to General Panel
-            AddFilterButton(generalPanel);
-            AddReloadCADButton(generalPanel);
-            AddJoinElementsButton(generalPanel);
-            AddElementsTagsButton(generalPanel);
-            AddAlignTagsButton(generalPanel);
-            AddImportEXtoLegendButton(generalPanel);
-            AddWallDivideButton(generalPanel);
-            AddElevationViewButton(generalPanel);
-            AddCreateSectionWallButton(generalPanel);
-            AddViewRefButton(generalPanel);
-            AddLayerXYButton(generalPanel);
             AddDuplicateSheetButton(generalPanel);
             AddMtoCheckButton(generalPanel);
+            AddMtoGroupBarButton(generalPanel);
+            AddMtoQueryButton(generalPanel);
+            AddMtoSmartTagButton(generalPanel);
+            AddRenameSheetNumberButton(generalPanel);
         }
 
         private static RibbonPanel GetOrCreatePanel(UIControlledApplication application, string tabName, string panelName)
@@ -54,81 +46,6 @@ namespace RincoMTO.Core
                 if (panel.Name == panelName) return panel;
             }
             return application.CreateRibbonPanel(tabName, panelName);
-        }
-
-        private static void AddFilterButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdFilter",
-                "Advanced\nFilter",
-                _assemblyPath,
-                "RincoMTO.Tools.Filter.Command"
-            );
-            btnData.ToolTip = "Advanced object filter for project elements.";
-            
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            pb.LargeImage = LoadIcon("Filter.png");
-            pb.Image = LoadIcon("Filter.png", 16);
-        }
-
-        private static void AddReloadCADButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdReloadCADLinks",
-                "Reload\nCAD Links",
-                _assemblyPath,
-                "RincoMTO.Tools.ReloadCADLinks.ReloadCADCommand"
-            );
-            btnData.ToolTip = "Batch reload CAD links with path overriding.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            pb.LargeImage = LoadIcon("ReloadCAD.png");
-            pb.Image = LoadIcon("ReloadCAD.png", 16);
-        }
-
-        private static void AddJoinElementsButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdJoinElements",
-                "Join\nElements",
-                _assemblyPath,
-                "RincoMTO.Tools.JoinElements.Command"
-            );
-            btnData.ToolTip = "Batch Join, Unjoin, or Switch geometry of elements.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            pb.LargeImage = LoadIcon("JoinElements.png");
-            pb.Image = LoadIcon("JoinElements.png", 16);
-        }
-
-        private static void AddElementsTagsButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdElementsTags",
-                "Elements\nTags",
-                _assemblyPath,
-                "RincoMTO.Tools.ElementsTags.Command"
-            );
-            btnData.ToolTip = "Batch tag elements and fix misplaced tags.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            pb.LargeImage = LoadIcon("ElementsTags.png");
-            pb.Image = LoadIcon("ElementsTags.png", 16);
-        }
-
-        private static void AddAlignTagsButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdAlignTags",
-                "Align\nTags",
-                _assemblyPath,
-                "RincoMTO.Tools.AlignTags.AlignTagsCommand"
-            );
-            btnData.ToolTip = "Align heads of multiple tags based on a reference tag coordinate.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            pb.LargeImage = LoadIcon("AlignTags.png");
-            pb.Image = LoadIcon("AlignTags.png", 16);
         }
 
         private static BitmapImage LoadIcon(string iconName, int size = 32)
@@ -156,91 +73,6 @@ namespace RincoMTO.Core
             }
         }
 
-        private static void AddImportEXtoLegendButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdImportEXtoLegend",
-                "Import\nExcel",
-                _assemblyPath,
-                "RincoMTO.Tools.ImportEXtoLegend.Command"
-            );
-            btnData.ToolTip = "Import and update Excel tables in Legend views.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            pb.LargeImage = LoadIcon("ImportExcel.png");
-            pb.Image = LoadIcon("ImportExcel.png", 16);
-        }
-
-        private static void AddWallDivideButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdWallDivide",
-                "Wall\nDivide",
-                _assemblyPath,
-                "RincoMTO.Tools.WallDivide.Command"
-            );
-            btnData.ToolTip = "Divide wall panels based on weight and dimension constraints.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            pb.LargeImage = LoadIcon("WallDivide.png");
-            pb.Image = LoadIcon("WallDivide.png", 16);
-        }
-
-        private static void AddElevationViewButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdElevationView",
-                "Elevation\nView",
-                _assemblyPath,
-                "RincoMTO.Tools.ElevationView.Command"
-            );
-            btnData.ToolTip = "Optimize elevation view crops and level lines.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-        }
-
-        private static void AddCreateSectionWallButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdCreateSectionWall",
-                "Section\nWall",
-                _assemblyPath,
-                "RincoMTO.Tools.CreateSectionWall.Command"
-            );
-            btnData.ToolTip = "Generate section views parallel to selected walls.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-        }
-
-        private static void AddViewRefButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdViewRef",
-                "View\nRef",
-                _assemblyPath,
-                "RincoMTO.Tools.ViewRef.Command"
-            );
-            btnData.ToolTip = "Place View Reference tags on walls.";
-
-            // Add icon if it exists, otherwise it will just show text
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            pb.LargeImage = LoadIcon("ViewRef.png");
-            pb.Image = LoadIcon("ViewRef.png", 16);
-        }
-
-        private static void AddLayerXYButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdLayerXY",
-                "Layer\nXY",
-                _assemblyPath,
-                "RincoMTO.Tools.MtoLayerXy.Command"
-            );
-            btnData.ToolTip = "Toggle visibility of family instances by X/Y direction.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-        }
-
         private static void AddDuplicateSheetButton(RibbonPanel panel)
         {
             PulldownButtonData pdData = new PulldownButtonData(
@@ -250,8 +82,8 @@ namespace RincoMTO.Core
             pdData.ToolTip = "Duplicate sheets with or without detailing.";
 
             PulldownButton pdBtn = panel.AddItem(pdData) as PulldownButton;
-            pdBtn.LargeImage = LoadIcon("DuplicateSheet.png");
-            pdBtn.Image = LoadIcon("DuplicateSheet.png", 16);
+            pdBtn.LargeImage = LoadIcon("DefaultIcon.png");
+            pdBtn.Image = LoadIcon("DefaultIcon.png", 16);
 
             PushButtonData btnWithDetailing = new PushButtonData(
                 "cmdDuplicateWithDetailing",
@@ -260,20 +92,9 @@ namespace RincoMTO.Core
                 "RincoMTO.Tools.DuplicateSheet.DuplicateWithDetailingCommand"
             );
             btnWithDetailing.ToolTip = "Duplicate selected sheets and all their views with detailing.";
-            btnWithDetailing.LargeImage = LoadIcon("DuplicateSheet.png");
-            btnWithDetailing.Image = LoadIcon("DuplicateSheet.png", 16);
+            btnWithDetailing.LargeImage = LoadIcon("DefaultIcon.png");
+            btnWithDetailing.Image = LoadIcon("DefaultIcon.png", 16);
             pdBtn.AddPushButton(btnWithDetailing);
-
-            PushButtonData btnEmpty = new PushButtonData(
-                "cmdDuplicateEmptySheet",
-                "Empty Sheet",
-                _assemblyPath,
-                "RincoMTO.Tools.DuplicateSheet.DuplicateEmptySheetCommand"
-            );
-            btnEmpty.ToolTip = "Duplicate selected sheets without any views.";
-            btnEmpty.LargeImage = LoadIcon("DuplicateSheet.png");
-            btnEmpty.Image = LoadIcon("DuplicateSheet.png", 16);
-            pdBtn.AddPushButton(btnEmpty);
         }
 
         private static void AddMtoCheckButton(RibbonPanel panel)
@@ -287,8 +108,64 @@ namespace RincoMTO.Core
             btnData.ToolTip = "Check and compare rebar between drawings using Element ID and Unique ID.";
 
             PushButton pb = panel.AddItem(btnData) as PushButton;
-            pb.LargeImage = LoadIcon("Check.png"); // Assuming a generic icon or it will just display text if missing
-            pb.Image = LoadIcon("Check.png", 16);
+            pb.LargeImage = LoadIcon("DefaultIcon.png"); 
+            pb.Image = LoadIcon("DefaultIcon.png", 16);
+        }
+
+        private static void AddMtoGroupBarButton(RibbonPanel panel)
+        {
+            PushButtonData btnData = new PushButtonData(
+                "cmdMtoGroupBar",
+                "MTO Group\nBar",
+                _assemblyPath,
+                "RincoMTO.Tools.MtoGroupBar.Command"
+            );
+            btnData.ToolTip = "Group rebar by adjacency.";
+
+            PushButton pb = panel.AddItem(btnData) as PushButton;
+            try { pb.LargeImage = LoadIcon("DefaultIcon.png"); pb.Image = LoadIcon("DefaultIcon.png", 16); } catch { }
+        }
+
+        private static void AddMtoQueryButton(RibbonPanel panel)
+        {
+            PushButtonData btnData = new PushButtonData(
+                "cmdMtoQuery",
+                "MTO\nQuery",
+                _assemblyPath,
+                "RincoMTO.Tools.MTOQuery.Command"
+            );
+            btnData.ToolTip = "MTO Query.";
+
+            PushButton pb = panel.AddItem(btnData) as PushButton;
+            try { pb.LargeImage = LoadIcon("DefaultIcon.png"); pb.Image = LoadIcon("DefaultIcon.png", 16); } catch { }
+        }
+
+        private static void AddMtoSmartTagButton(RibbonPanel panel)
+        {
+            PushButtonData btnData = new PushButtonData(
+                "cmdMtoSmartTag",
+                "MTO Smart\nTag",
+                _assemblyPath,
+                "RincoMTO.Tools.MtoSmartTag.Command"
+            );
+            btnData.ToolTip = "MTO Smart Tag tool.";
+
+            PushButton pb = panel.AddItem(btnData) as PushButton;
+            try { pb.LargeImage = LoadIcon("DefaultIcon.png"); pb.Image = LoadIcon("DefaultIcon.png", 16); } catch { }
+        }
+
+        private static void AddRenameSheetNumberButton(RibbonPanel panel)
+        {
+            PushButtonData btnData = new PushButtonData(
+                "cmdRenameSheetNumber",
+                "Rename\nSheetNumber",
+                _assemblyPath,
+                "RincoMTO.Tools.RenameSheetNumber.RenameSheetNumberCommand"
+            );
+            btnData.ToolTip = "Rename Sheet Numbers.";
+
+            PushButton pb = panel.AddItem(btnData) as PushButton;
+            try { pb.LargeImage = LoadIcon("DefaultIcon.png"); pb.Image = LoadIcon("DefaultIcon.png", 16); } catch { }
         }
     }
 }

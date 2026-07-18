@@ -1,4 +1,4 @@
-﻿using Autodesk.Revit.Attributes;
+using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using System;
@@ -19,7 +19,11 @@ namespace RincoMTO.Tools.MtoGroupBar
             {
                 ElementId detailCatId = null;
                 try { detailCatId = Category.GetCategory(doc, BuiltInCategory.OST_DetailComponents)?.Id; } catch { }
+#if REVIT2024_OR_GREATER
+                if (detailCatId == null) detailCatId = new ElementId((long)BuiltInCategory.OST_DetailComponents);
+#else
                 if (detailCatId == null) detailCatId = new ElementId((int)BuiltInCategory.OST_DetailComponents);
+#endif
 
                 // 1. Pick Main Element
                 Reference mainRef = null;

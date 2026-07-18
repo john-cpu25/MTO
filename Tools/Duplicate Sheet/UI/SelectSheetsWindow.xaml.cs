@@ -102,7 +102,7 @@ namespace RincoMTO.Tools.DuplicateSheet.UI
 
             _handler.SelectedSheetIds = SelectedSheets.Select(s => s.Id).ToList();
             
-            if (tabControl.SelectedIndex == 2)
+            if (tabControl.SelectedIndex == 0)
             {
                 _handler.ActionType = "CopyID";
             }

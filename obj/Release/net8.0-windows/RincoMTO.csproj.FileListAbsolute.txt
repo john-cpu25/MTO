@@ -33,42 +33,6 @@ C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Release\net8.0-
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Release\net8.0-windows\ref\RincoMTO.dll
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Release\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.baml
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Release\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.g.cs
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\RincoMTO.deps.json
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\RincoMTO.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\RincoMTO.pdb
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\ClosedXML.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\CommunityToolkit.Mvvm.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\DocumentFormat.OpenXml.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\ExcelNumberFormat.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\Irony.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\Microsoft.Xaml.Behaviors.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\SixLabors.Fonts.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\XLParser.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.csproj.AssemblyReference.cache
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\Duplicate Sheet\UI\SelectSheetsWindow.baml
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Group Bar\UI\MtoGroupBarWindow.baml
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Query\UI\MtoQueryWindow.baml
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.baml
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\Duplicate Sheet\UI\SelectSheetsWindow.g.cs
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Group Bar\UI\MtoGroupBarWindow.g.cs
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Query\UI\MtoQueryWindow.g.cs
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.g.cs
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.g.cs
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\GeneratedInternalTypeHelper.g.cs
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO_MarkupCompile.cache
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO_MarkupCompile.lref
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.baml
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.g.resources
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.AssemblyInfoInputs.cache
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.AssemblyInfo.cs
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.csproj.CoreCompileInputs.cache
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.sourcelink.json
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.csproj.Up2Date
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\refint\RincoMTO.dll
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.pdb
-C:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\ref\RincoMTO.dll
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Release\net8.0-windows\RincoMTO.deps.json
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Release\net8.0-windows\RincoMTO.dll
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Release\net8.0-windows\RincoMTO.pdb
@@ -105,3 +69,41 @@ C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\refint\RincoMTO.dll
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\RincoMTO.pdb
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\ref\RincoMTO.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\RincoMTO.deps.json
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\RincoMTO.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\RincoMTO.pdb
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\ClosedXML.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\CommunityToolkit.Mvvm.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\DocumentFormat.OpenXml.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\ExcelNumberFormat.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\Irony.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\Microsoft.Xaml.Behaviors.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\SixLabors.Fonts.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\bin\Release\net8.0-windows\XLParser.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.csproj.AssemblyReference.cache
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\Duplicate Sheet\UI\SelectSheetsWindow.baml
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Check\UI\MtoCheckWindow.baml
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Group Bar\UI\MtoGroupBarWindow.baml
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Query\UI\MtoQueryWindow.baml
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.baml
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\Duplicate Sheet\UI\SelectSheetsWindow.g.cs
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Check\UI\MtoCheckWindow.g.cs
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Group Bar\UI\MtoGroupBarWindow.g.cs
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Query\UI\MtoQueryWindow.g.cs
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.g.cs
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.g.cs
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\GeneratedInternalTypeHelper.g.cs
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO_MarkupCompile.cache
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO_MarkupCompile.lref
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.baml
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.g.resources
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.AssemblyInfoInputs.cache
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.AssemblyInfo.cs
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.csproj.CoreCompileInputs.cache
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.sourcelink.json
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.csproj.Up2Date
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\refint\RincoMTO.dll
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.pdb
+c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\ref\RincoMTO.dll
