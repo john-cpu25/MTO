@@ -75,26 +75,17 @@ namespace RincoMTO.Core
 
         private static void AddDuplicateSheetButton(RibbonPanel panel)
         {
-            PulldownButtonData pdData = new PulldownButtonData(
-                "cmdDuplicateSheetSplit",
-                "Duplicate\nSheet"
-            );
-            pdData.ToolTip = "Duplicate sheets with or without detailing.";
-
-            PulldownButton pdBtn = panel.AddItem(pdData) as PulldownButton;
-            pdBtn.LargeImage = LoadIcon("DefaultIcon.png");
-            pdBtn.Image = LoadIcon("DefaultIcon.png", 16);
-
-            PushButtonData btnWithDetailing = new PushButtonData(
-                "cmdDuplicateWithDetailing",
-                "With Detailing",
+            PushButtonData btnData = new PushButtonData(
+                "cmdDuplicateSheet",
+                "Duplicate\nSheet",
                 _assemblyPath,
                 "RincoMTO.Tools.DuplicateSheet.DuplicateWithDetailingCommand"
             );
-            btnWithDetailing.ToolTip = "Duplicate selected sheets and all their views with detailing.";
-            btnWithDetailing.LargeImage = LoadIcon("DefaultIcon.png");
-            btnWithDetailing.Image = LoadIcon("DefaultIcon.png", 16);
-            pdBtn.AddPushButton(btnWithDetailing);
+            btnData.ToolTip = "Duplicate selected sheets and all their views.";
+            btnData.LargeImage = LoadIcon("DefaultIcon.png");
+            btnData.Image = LoadIcon("DefaultIcon.png", 16);
+
+            panel.AddItem(btnData);
         }
 
         private static void AddMtoCheckButton(RibbonPanel panel)

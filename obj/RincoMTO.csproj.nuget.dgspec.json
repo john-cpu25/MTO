@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj": {}
+    "c:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj": {}
   },
   "projects": {
-    "C:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj": {
+    "c:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj",
+        "projectUniqueName": "c:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj",
         "projectName": "RincoMTO",
-        "projectPath": "C:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj",
+        "projectPath": "c:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\RincoMTO.csproj",
         "packagesPath": "C:\\Users\\nguye\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\obj\\",
+        "outputPath": "c:\\Users\\nguye\\OneDrive\\AI\\RincoMTO\\obj\\",
         "projectStyle": "PackageReference",
         "crossTargeting": true,
         "fallbackFolders": [
