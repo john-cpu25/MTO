@@ -41,3 +41,49 @@ C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net48\Rin
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net48\RincoMTO.pdb
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net48\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.baml
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\obj\Debug\net48\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.g.cs
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.csproj.AssemblyReference.cache
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\Duplicate Sheet\UI\SelectSheetsWindow.baml
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\MTO Check\UI\MtoCheckWindow.baml
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\MTO Group Bar\UI\MtoGroupBarWindow.baml
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\MTO Query\UI\MtoQueryWindow.baml
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.baml
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\Duplicate Sheet\UI\SelectSheetsWindow.g.cs
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\MTO Check\UI\MtoCheckWindow.g.cs
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\MTO Group Bar\UI\MtoGroupBarWindow.g.cs
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\MTO Query\UI\MtoQueryWindow.g.cs
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.g.cs
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.g.cs
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\GeneratedInternalTypeHelper.g.cs
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO_MarkupCompile.cache
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO_MarkupCompile.lref
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.pdb
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\RincoMTO.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\RincoMTO.pdb
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\ClosedXML.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\CommunityToolkit.Mvvm.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\DocumentFormat.OpenXml.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\ExcelNumberFormat.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\Irony.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\Microsoft.Bcl.AsyncInterfaces.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\Microsoft.Xaml.Behaviors.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\SixLabors.Fonts.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.Buffers.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.ComponentModel.Annotations.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.IO.Packaging.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.Memory.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.Numerics.Vectors.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.Runtime.CompilerServices.Unsafe.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.Text.Encodings.Web.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.Text.Json.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.Threading.Tasks.Extensions.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\System.ValueTuple.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Debug\net48\XLParser.dll
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.baml
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.g.resources
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.AssemblyInfoInputs.cache
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.AssemblyInfo.cs
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.csproj.CoreCompileInputs.cache
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.sourcelink.json
+c:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Debug\net48\RincoMTO.csproj.Up2Date

@@ -282,36 +282,50 @@ namespace RincoMTO.Tools.MtoSmartTag
 
                 try
                 {
+                    bool dotWasVisible = IsDotVisible(item);
+
                     // Only modify family parameters if NOT in OnlyAlreadyTagged mode
                     if (!OnlyAlreadyTagged)
                     {
-                        // Process dot settings (hide, show, center) BEFORE getting its position
-                        string dotDebug = ProcessUntaggedItem(item, doc, view);
-                        if (!string.IsNullOrEmpty(dotDebug) && string.IsNullOrEmpty(debugInfo))
+                        // Bypass ProcessUntaggedItem if OnlyUntagged is true, so the dot doesn't move or turn on
+                        if (!OnlyUntagged)
                         {
-                            debugInfo += dotDebug;
-                        }
-
-                        // For ZBar: set Arrow Location to 15211.1mm
-                        if (item is FamilyInstance fiZBar)
-                        {
-                            var zType = doc.GetElement(fiZBar.GetTypeId()) as FamilySymbol;
-                            if (zType != null && zType.FamilyName.Contains("ZBar"))
+                            // Process dot settings (hide, show, center) BEFORE getting its position
+                            string dotDebug = ProcessUntaggedItem(item, doc, view);
+                            if (!string.IsNullOrEmpty(dotDebug) && string.IsNullOrEmpty(debugInfo))
                             {
-                                Parameter pArrowLoc = fiZBar.LookupParameter("Arrow Location");
-                                if (pArrowLoc != null && !pArrowLoc.IsReadOnly)
+                                debugInfo += dotDebug;
+                            }
+
+                            // For ZBar: set Arrow Location to 15211.1mm
+                            if (item is FamilyInstance fiZBar)
+                            {
+                                var zType = doc.GetElement(fiZBar.GetTypeId()) as FamilySymbol;
+                                if (zType != null && zType.FamilyName.Contains("ZBar"))
                                 {
-                                    pArrowLoc.Set(15211.1 / 304.8); // mm to feet
+                                    Parameter pArrowLoc = fiZBar.LookupParameter("Arrow Location");
+                                    if (pArrowLoc != null && !pArrowLoc.IsReadOnly)
+                                    {
+                                        pArrowLoc.Set(15211.1 / 304.8); // mm to feet
+                                    }
                                 }
                             }
+                        
+                            // Force Revit to update geometry so GetDotPosition gets the NEW center location
+                            doc.Regenerate();
                         }
-                    
-                        // Force Revit to update geometry so GetDotPosition gets the NEW center location
-                        doc.Regenerate();
                     }
 
-                    // Get dot position (the circle on the distribution symbol)
-                    XYZ dotPos = GetDotPosition(item, doc, view);
+                    // Get position based on tagging mode (dot or line end)
+                    XYZ dotPos = null;
+                    if (OnlyUntagged)
+                    {
+                        dotPos = GetLineEndPoint(item, view);
+                    }
+                    if (dotPos == null)
+                    {
+                        dotPos = GetDotPosition(item, doc, view);
+                    }
                     if (dotPos == null)
                     {
                         failedCount++;
@@ -342,6 +356,16 @@ namespace RincoMTO.Tools.MtoSmartTag
 
                     // Tag position = dot position + offset
                     XYZ tagPosition = dotPos + offsetVector;
+
+                    if (OnlyUntagged)
+                    {
+                        double distMm = UseDirectOffset ? Math.Max(Math.Abs(OffsetXMm), Math.Abs(OffsetYMm)) : OffsetDistanceMm;
+                        XYZ dynamicOffset = GetDynamicOutwardOffset(item, view, dotPos, distMm);
+                        if (dynamicOffset != null)
+                        {
+                            tagPosition = dotPos + dynamicOffset;
+                        }
+                    }
 
                     // Create the tag — ALWAYS with leader first so TagHeadPosition works
                     // (Without leader, Revit ignores position and snaps to element center)
@@ -378,8 +402,9 @@ namespace RincoMTO.Tools.MtoSmartTag
 
                         taggedCount++;
 
-                        // Tự động tắt chấm tròn sau khi đã tag xong (chỉ khi KHÔNG ở chế độ OnlyAlreadyTagged)
-                        if (!OnlyAlreadyTagged && item is FamilyInstance fi)
+                        // Tự động tắt chấm tròn sau khi đã tag xong (chỉ khi KHÔNG ở chế độ OnlyAlreadyTagged và KHÔNG ở chế độ OnlyUntagged)
+                        // Trong chế độ OnlyUntagged, nếu dot đang bật thì giữ nguyên để không làm nhảy hình học thép
+                        if (!OnlyAlreadyTagged && !OnlyUntagged && item is FamilyInstance fi)
                         {
                             bool isAdj = fi.Symbol.FamilyName.Contains("Reinforcement_Distribution");
                             string pName = isAdj ? "Dot Visibility" : "Arrow & Dot Visibility";
@@ -451,6 +476,26 @@ namespace RincoMTO.Tools.MtoSmartTag
             msg += $" (Total: {detailItems.Count})";
             msg += debugInfo;
             NotifyStatus?.Invoke(msg);
+        }
+
+        private bool IsDotVisible(Element item)
+        {
+            if (item is FamilyInstance fi)
+            {
+                var type = fi.Document.GetElement(fi.GetTypeId()) as FamilySymbol;
+                if (type != null)
+                {
+                    string famName = type.FamilyName;
+                    bool isAdj = famName.Contains("Reinforcement_Distribution");
+                    string pName = isAdj ? "Dot Visibility" : "Arrow & Dot Visibility";
+                    Parameter visParam = fi.LookupParameter(pName);
+                    if (visParam != null && visParam.HasValue)
+                    {
+                        return visParam.AsInteger() == 1;
+                    }
+                }
+            }
+            return false;
         }
 
         private string ProcessUntaggedItem(Element item, Document doc, View view)
@@ -917,6 +962,172 @@ namespace RincoMTO.Tools.MtoSmartTag
                 return (bbox.Min + bbox.Max) / 2;
             }
 
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the end point of the rebar shape in the element's geometry.
+        /// Supports straight, L, and Z bars by finding the extreme free ends of the entire shape.
+        /// </summary>
+        private XYZ GetLineEndPoint(Element item, View view)
+        {
+            Options opt = new Options { View = view, ComputeReferences = true };
+            GeometryElement geo = item.get_Geometry(opt);
+            if (geo == null) return null;
+
+            List<Curve> allCurves = new List<Curve>();
+            Stack<GeometryObject> geoStack = new Stack<GeometryObject>();
+            foreach (GeometryObject obj in geo) geoStack.Push(obj);
+
+            while (geoStack.Count > 0)
+            {
+                GeometryObject current = geoStack.Pop();
+                if (current is Curve curve)
+                {
+                    allCurves.Add(curve);
+                }
+                else if (current is PolyLine polyLine)
+                {
+                    IList<XYZ> pts = polyLine.GetCoordinates();
+                    for (int i = 0; i < pts.Count - 1; i++)
+                    {
+                        allCurves.Add(Line.CreateBound(pts[i], pts[i + 1]));
+                    }
+                }
+                else if (current is GeometryInstance geoInst)
+                {
+                    GeometryElement instGeo = geoInst.GetInstanceGeometry();
+                    if (instGeo != null)
+                    {
+                        foreach (GeometryObject subObj in instGeo)
+                        {
+                            geoStack.Push(subObj);
+                        }
+                    }
+                }
+            }
+
+            if (allCurves.Count == 0) return null;
+
+            // Find free endpoints (points that are not shared with other lines)
+            List<XYZ> freeEnds = new List<XYZ>();
+            double tol = 0.001;
+
+            foreach (var line in allCurves)
+            {
+                if (!line.IsBound) continue;
+
+                for (int i = 0; i < 2; i++)
+                {
+                    XYZ pt = line.GetEndPoint(i);
+                    bool isShared = false;
+                    foreach (var otherLine in allCurves)
+                    {
+                        if (ReferenceEquals(line, otherLine)) continue;
+                        if (!otherLine.IsBound) continue;
+
+                        if (pt.DistanceTo(otherLine.GetEndPoint(0)) < tol ||
+                            pt.DistanceTo(otherLine.GetEndPoint(1)) < tol)
+                        {
+                            isShared = true;
+                            break;
+                        }
+                    }
+                    if (!isShared)
+                    {
+                        freeEnds.Add(pt);
+                    }
+                }
+            }
+
+            // If no free ends found (e.g. closed loop / thick bar), find the two points furthest apart
+            if (freeEnds.Count == 0)
+            {
+                List<XYZ> allPts = new List<XYZ>();
+                foreach (var l in allCurves)
+                {
+                    if (l.IsBound)
+                    {
+                        allPts.Add(l.GetEndPoint(0));
+                        allPts.Add(l.GetEndPoint(1));
+                    }
+                }
+
+                double maxDist = -1;
+                XYZ maxP1 = null;
+                XYZ maxP2 = null;
+
+                for (int i = 0; i < allPts.Count; i++)
+                {
+                    for (int j = i + 1; j < allPts.Count; j++)
+                    {
+                        double d = allPts[i].DistanceTo(allPts[j]);
+                        if (d > maxDist)
+                        {
+                            maxDist = d;
+                            maxP1 = allPts[i];
+                            maxP2 = allPts[j];
+                        }
+                    }
+                }
+
+                if (maxP1 != null && maxP2 != null)
+                {
+                    freeEnds.Add(maxP1);
+                    freeEnds.Add(maxP2);
+                }
+            }
+
+            // Pick the free end that belongs to the longest segment
+            if (freeEnds.Count > 0)
+            {
+                Curve longestCurve = allCurves.Where(c => c.IsBound).OrderByDescending(c => c.Length).FirstOrDefault();
+                if (longestCurve != null)
+                {
+                    XYZ p0 = longestCurve.GetEndPoint(0);
+                    XYZ p1 = longestCurve.GetEndPoint(1);
+                    return freeEnds.OrderBy(fe => Math.Min(fe.DistanceTo(p0), fe.DistanceTo(p1))).First();
+                }
+                return freeEnds.First();
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Calculates an offset vector pointing exactly outward along the line segment ending at endPoint.
+        /// </summary>
+        private XYZ GetDynamicOutwardOffset(Element item, View view, XYZ endPoint, double distanceMm)
+        {
+            if (distanceMm == 0) return XYZ.Zero;
+            double distFeet = distanceMm / 304.8;
+            
+            Options opt = new Options { View = view, ComputeReferences = true };
+            GeometryElement geo = item.get_Geometry(opt);
+            if (geo == null) return null;
+
+            double tol = 0.001;
+            Stack<GeometryObject> geoStack = new Stack<GeometryObject>();
+            foreach (GeometryObject obj in geo) geoStack.Push(obj);
+
+            while (geoStack.Count > 0)
+            {
+                GeometryObject current = geoStack.Pop();
+                if (current is Line line)
+                {
+                    XYZ p0 = line.GetEndPoint(0);
+                    XYZ p1 = line.GetEndPoint(1);
+                    if (p0.DistanceTo(endPoint) < tol) return (p0 - p1).Normalize() * distFeet;
+                    if (p1.DistanceTo(endPoint) < tol) return (p1 - p0).Normalize() * distFeet;
+                }
+                else if (current is GeometryInstance geoInst)
+                {
+                    GeometryElement instGeo = geoInst.GetInstanceGeometry();
+                    if (instGeo != null)
+                    {
+                        foreach (GeometryObject subObj in instGeo) geoStack.Push(subObj);
+                    }
+                }
+            }
             return null;
         }
 

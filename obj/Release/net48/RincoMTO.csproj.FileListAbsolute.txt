@@ -131,3 +131,5 @@ c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.sourcelink.json
 c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.csproj.Up2Date
 c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.dll
 c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net48\RincoMTO.pdb
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net48\Tools\MTO Check\UI\MtoCheckWindow.baml
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net48\Tools\MTO Check\UI\MtoCheckWindow.g.cs

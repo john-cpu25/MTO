@@ -107,3 +107,5 @@ c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.dll
 c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\refint\RincoMTO.dll
 c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.pdb
 c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\ref\RincoMTO.dll
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\MTO Check\UI\MtoCheckWindow.baml
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\MTO Check\UI\MtoCheckWindow.g.cs
