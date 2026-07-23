@@ -1,0 +1,177 @@
+<Window x:Class="RincoMTO.Tools.PtReport.UI.PtReportWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:core="clr-namespace:RincoMTO.Core"
+        Title="PT Report - Post-Tension Tendon Data" 
+        Width="1100" Height="600"
+        MinWidth="800" MinHeight="450"
+        WindowStartupLocation="CenterScreen"
+        Background="#F3F4F6"
+        Foreground="#1F2937"
+        FontFamily="Segoe UI">
+    <Window.Resources>
+        <!-- Bool to Visibility Converter -->
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- BindingProxy: bridges DataContext into DataGridColumns (outside Visual Tree) -->
+        <core:BindingProxy x:Key="proxy" Data="{Binding}"/>
+
+        <!-- Primary Button Style -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Opacity" Value="0.9"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Checkbox Style -->
+        <Style x:Key="OptionCheckBox" TargetType="CheckBox">
+            <Setter Property="Margin" Value="0,3"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="#374151"/>
+        </Style>
+
+        <!-- Total Row Style (đỏ, bold) -->
+        <Style x:Key="TotalRowStyle" TargetType="DataGridRow">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsTotalRow}" Value="True">
+                    <Setter Property="Background" Value="#FEE2E2"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="Foreground" Value="#DC2626"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsWarning}" Value="True">
+                    <Setter Property="Background" Value="#FEF3C7"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="15">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Panel: Options -->
+        <Border Grid.Column="0" Background="White" CornerRadius="6" Padding="15" Margin="0,0,10,0"
+                BorderBrush="#E5E7EB" BorderThickness="1">
+            <StackPanel>
+                <TextBlock Text="Select Parameters to report:" FontWeight="SemiBold" FontSize="13" Margin="0,0,0,10"/>
+
+                <CheckBox Content="Number of Strands" IsChecked="{Binding ShowNumberStrands}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="No. Splitted Strands" IsChecked="{Binding ShowNumberSplitStrands}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="Strand Type" IsChecked="{Binding ShowStrandType}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="PT Length" IsChecked="{Binding ShowLength}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="Splitted Strands Length" IsChecked="{Binding ShowSplitStrandsLength}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="PT Weight" IsChecked="{Binding ShowWeight}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="Pan Count" IsChecked="{Binding ShowPanCount}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="PT Associated Level" IsChecked="{Binding ShowAssociatedLevel}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="PT Associated Building" IsChecked="{Binding ShowAssociatedBuilding}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="PT Associated Zone" IsChecked="{Binding ShowAssociatedZone}" Style="{StaticResource OptionCheckBox}"/>
+                <CheckBox Content="PT Pour Number" IsChecked="{Binding ShowPourNumber}" Style="{StaticResource OptionCheckBox}"/>
+
+                <Separator Margin="0,10"/>
+
+                <CheckBox Content="Select All" IsChecked="{Binding SelectAll}" 
+                          Style="{StaticResource OptionCheckBox}" FontWeight="SemiBold"/>
+
+                <Separator Margin="0,10"/>
+
+                <Button Content="GENERATE REPORT" Command="{Binding GenerateReportCommand}" 
+                        Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0,5,0,0"/>
+
+                <Button Content="EXPORT CSV" Command="{Binding ExportCsvCommand}" 
+                        Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch" Margin="0,5,0,0"
+                        Background="#059669"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Right Panel: Results -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <TextBlock Grid.Row="0" Text="PT Data Table" FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
+
+            <!-- DataGrid -->
+            <DataGrid Grid.Row="1" ItemsSource="{Binding ReportItems}" AutoGenerateColumns="False"
+                      IsReadOnly="True" AlternatingRowBackground="#F9FAFB" HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#E5E7EB" BorderBrush="#D1D5DB"
+                      CanUserSortColumns="True" CanUserReorderColumns="True"
+                      RowStyle="{StaticResource TotalRowStyle}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID Tag" Binding="{Binding ElementId}" Width="80"/>
+                    <DataGridTextColumn Header="PT ID" Binding="{Binding PtIdDisplay}" Width="60"/>
+                    <DataGridTextColumn Header="No. Strands" Binding="{Binding NumberStrands}" Width="80"
+                                        Visibility="{Binding Data.ColNumberStrandsVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="No. Strands Terminated Early" Binding="{Binding NumberSplitStrands}" Width="80"
+                                        Visibility="{Binding Data.ColNumberSplitStrandsVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="Strand Type" Binding="{Binding StrandType}" Width="90"
+                                        Visibility="{Binding Data.ColStrandTypeVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="PT Length" Binding="{Binding Length}" Width="100"
+                                        Visibility="{Binding Data.ColLengthVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="Split Strands Length" Binding="{Binding SplitStrandLength}" Width="100"
+                                        Visibility="{Binding Data.ColSplitStrandsLengthVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="PT Weight (kg)" Binding="{Binding Weight}" Width="90"
+                                        Visibility="{Binding Data.ColWeightVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="Pan Count" Binding="{Binding PanCount}" Width="70"
+                                        Visibility="{Binding Data.ColPanCountVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="PT Associated Level" Binding="{Binding AssociatedLevel}" Width="120"
+                                        Visibility="{Binding Data.ColAssociatedLevelVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="PT Associated Building" Binding="{Binding AssociatedBuilding}" Width="120"
+                                        Visibility="{Binding Data.ColAssociatedBuildingVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="PT Associated Zone" Binding="{Binding AssociatedZone}" Width="120"
+                                        Visibility="{Binding Data.ColAssociatedZoneVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                    <DataGridTextColumn Header="Pour Number" Binding="{Binding PourNumber}" Width="90"
+                                        Visibility="{Binding Data.ColPourNumberVisible, 
+                                        Source={StaticResource proxy}, 
+                                        Converter={StaticResource BoolToVis}}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Status Bar -->
+            <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" Foreground="#4B5563" 
+                       VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,8,0,0"/>
+        </Grid>
+    </Grid>
+</Window>

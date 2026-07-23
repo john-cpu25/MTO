@@ -46,12 +46,8 @@ C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Release\net
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\bin\Release\net8.0-windows\XLParser.dll
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\RincoMTO.csproj.AssemblyReference.cache
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\Duplicate Sheet\UI\SelectSheetsWindow.baml
-C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\MTO Group Bar\UI\MtoGroupBarWindow.baml
-C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\MTO Query\UI\MtoQueryWindow.baml
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.baml
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\Duplicate Sheet\UI\SelectSheetsWindow.g.cs
-C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\MTO Group Bar\UI\MtoGroupBarWindow.g.cs
-C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\MTO Query\UI\MtoQueryWindow.g.cs
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\MTO Smart Tag\UI\MtoSmartTagWindow.g.cs
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\Rename SheetNumber\UI\RenameSheetNumberWindow.g.cs
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\GeneratedInternalTypeHelper.g.cs
@@ -109,3 +105,5 @@ c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\RincoMTO.pdb
 c:\Users\nguye\OneDrive\AI\RincoMTO\obj\Release\net8.0-windows\ref\RincoMTO.dll
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\MTO Check\UI\MtoCheckWindow.baml
 C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\MTO Check\UI\MtoCheckWindow.g.cs
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\PT Report\UI\PtReportWindow.baml
+C:\Users\Nhan\OneDrive - Rincovitch\00. Nhan\CSharp\RincoMTO\MTO\obj\Release\net8.0-windows\Tools\PT Report\UI\PtReportWindow.g.cs

@@ -542,7 +542,7 @@ namespace RincoMTO.Tools.MtoCheck
                         }
                     }
 
-                    // === PHẦN 1: Copy thép bị thiếu ===
+                    // === PHẦN 1: Copy thép bị thiếu + tag cùng lúc ===
                     if (hasMissing)
                     {
                         var groups = MissingItems
@@ -571,52 +571,52 @@ namespace RincoMTO.Tools.MtoCheck
                                 }
                             }
 
+                            // Tìm tags gắn với các element cần copy
                             var tagIds = FindTagsForElements(doc, sourceView, elementIds);
+
+                            // Gộp element + tag vào một danh sách để copy cùng lúc
+                            // Revit sẽ tự động remap tag → element mới khi copy chung
+                            var allIds = new List<ElementId>(elementIds);
+                            allIds.AddRange(tagIds);
 
                             var opts = new CopyPasteOptions();
                             opts.SetDuplicateTypeNamesHandler(new OverwriteDuplicateHandler());
 
-                            ICollection<ElementId> copiedElementIds;
+                            ICollection<ElementId> allCopiedIds;
                             try
                             {
-                                copiedElementIds = ElementTransformUtils.CopyElements(
-                                    sourceView, elementIds, targetView, null, opts);
-                                copiedItems += copiedElementIds.Count;
+                                allCopiedIds = ElementTransformUtils.CopyElements(
+                                    sourceView, allIds, targetView, null, opts);
                             }
                             catch { continue; }
 
+                            // Tách kết quả: rebar (đầu) và tags (cuối)
+                            var allCopiedList = allCopiedIds.ToList();
+                            int rebarCount = Math.Min(elementIds.Count, allCopiedList.Count);
+                            var copiedRebarIds = allCopiedList.GetRange(0, rebarCount);
+
+                            copiedItems += copiedRebarIds.Count;
+                            copiedTags += Math.Max(0, allCopiedList.Count - rebarCount);
+
                             // Sửa vị trí: đảm bảo element mới copy đúng vị trí với Source
-                            var copiedList = copiedElementIds.ToList();
-                            for (int i = 0; i < copiedList.Count && i < elementIds.Count; i++)
+                            for (int i = 0; i < copiedRebarIds.Count; i++)
                             {
                                 if (sourceLocations.TryGetValue(i, out XYZ srcPoint))
                                 {
-                                    var newItem = doc.GetElement(copiedList[i]) as FamilyInstance;
+                                    var newItem = doc.GetElement(copiedRebarIds[i]) as FamilyInstance;
                                     if (newItem?.Location is LocationPoint newLoc)
                                     {
                                         XYZ delta = srcPoint - newLoc.Point;
                                         if (delta.GetLength() > 0.001)
                                         {
-                                            ElementTransformUtils.MoveElement(doc, copiedList[i], delta);
+                                            ElementTransformUtils.MoveElement(doc, copiedRebarIds[i], delta);
                                         }
                                     }
                                 }
                             }
 
-                            // Copy tags
-                            if (tagIds.Count > 0)
-                            {
-                                try
-                                {
-                                    var copiedTagIds = ElementTransformUtils.CopyElements(
-                                        sourceView, tagIds, targetView, null, opts);
-                                    copiedTags += copiedTagIds.Count;
-                                }
-                                catch { }
-                            }
-
-                            // Ghi Element ID + Unique ID + tô đỏ cho items mới copy
-                            foreach (var newId in copiedElementIds)
+                            // Ghi Element ID + Unique ID + tô xanh dương cho rebar mới copy
+                            foreach (var newId in copiedRebarIds)
                             {
                                 var newItem = doc.GetElement(newId) as FamilyInstance;
                                 if (newItem == null) continue;
@@ -653,6 +653,26 @@ namespace RincoMTO.Tools.MtoCheck
 
                         foreach (var group in changedByTarget)
                         {
+                            var firstChanged = group.First();
+                            var targetElem = doc.GetElement(firstChanged.TargetElementId);
+                            View ownerView = targetElem != null ? doc.GetElement(targetElem.OwnerViewId) as View : null;
+
+                            // 1. Lưu vị trí Reo Tag trước khi thay đổi parameter
+                            var reoTagSavedPositions = new Dictionary<ElementId, XYZ>();
+                            if (ownerView != null)
+                            {
+                                var targetTags = FindTagsForElements(doc, ownerView, new List<ElementId> { firstChanged.TargetElementId });
+                                foreach (var tagId in targetTags)
+                                {
+                                    var tag = doc.GetElement(tagId) as IndependentTag;
+                                    if (tag != null && IsReoTag(doc, tag))
+                                    {
+                                        reoTagSavedPositions[tagId] = tag.TagHeadPosition;
+                                    }
+                                }
+                            }
+
+                            // 2. Cập nhật parameters
                             foreach (var changed in group)
                             {
                                 var targetItem = doc.GetElement(changed.TargetElementId) as FamilyInstance;
@@ -684,17 +704,23 @@ namespace RincoMTO.Tools.MtoCheck
                                 catch { }
                             }
 
-                            // Giữ màu xanh lá cho element có parameter thay đổi
-                            var firstChanged = group.First();
-                            var targetElem = doc.GetElement(firstChanged.TargetElementId);
-                            if (targetElem != null)
+                            // 3. Khôi phục vị trí Reo Tag (tránh bị nhảy sau khi đổi parameter)
+                            foreach (var kvp in reoTagSavedPositions)
                             {
-                                View ownerView = doc.GetElement(targetElem.OwnerViewId) as View;
-                                if (ownerView != null)
+                                var tag = doc.GetElement(kvp.Key) as IndependentTag;
+                                if (tag != null)
                                 {
-                                    ApplyColorOverride(ownerView, firstChanged.TargetElementId, new Color(0, 255, 0));
-                                    UpdateTagLocation(doc, firstChanged.SourceElementId, firstChanged.TargetElementId, firstChanged.SourceViewId, ownerView.Id);
+                                    try { tag.TagHeadPosition = kvp.Value; } catch { }
                                 }
+                            }
+
+                            // 4. Tô màu + sync non-Reo tags từ Source
+                            if (ownerView != null && targetElem != null)
+                            {
+                                ApplyColorOverride(ownerView, firstChanged.TargetElementId, new Color(0, 255, 0));
+                                View srcView = doc.GetElement(firstChanged.SourceViewId) as View;
+                                if (srcView != null)
+                                    SyncTagsFromSourceToTarget(doc, firstChanged.SourceElementId, firstChanged.TargetElementId, srcView, ownerView, true, true);
                             }
                         }
                     }
@@ -732,7 +758,9 @@ namespace RincoMTO.Tools.MtoCheck
                                     if (ownerView != null)
                                     {
                                         ApplyColorOverride(ownerView, locItem.TargetElementId, new Color(0, 255, 0));
-                                        UpdateTagLocation(doc, locItem.SourceElementId, locItem.TargetElementId, locItem.SourceViewId, ownerView.Id);
+                                        View srcView2 = doc.GetElement(locItem.SourceViewId) as View;
+                                        if (srcView2 != null)
+                                            SyncTagsFromSourceToTarget(doc, locItem.SourceElementId, locItem.TargetElementId, srcView2, ownerView, true, true);
                                     }
                                 }
                             }
@@ -881,32 +909,150 @@ namespace RincoMTO.Tools.MtoCheck
 
 
         /// <summary>
-        /// Đồng bộ vị trí của Tag từ Source sang Target.
+        /// Copy tất cả tag từ Source element sang Target element.
+        /// Xóa tag cũ ở Target (nếu yêu cầu), tạo tag mới có vị trí và leader giống hệt Source.
         /// </summary>
-        private void UpdateTagLocation(Document doc, ElementId sourceElementId, ElementId targetElementId, ElementId sourceViewId, ElementId targetViewId)
+        /// <returns>Số tag đã tạo</returns>
+        private int SyncTagsFromSourceToTarget(Document doc,
+            ElementId sourceElementId, ElementId targetElementId,
+            View sourceView, View targetView,
+            bool deleteExistingTargetTags = true,
+            bool excludeReoTag = false)
         {
-            View sourceView = doc.GetElement(sourceViewId) as View;
-            View targetView = doc.GetElement(targetViewId) as View;
-            if (sourceView == null || targetView == null) return;
+            int createdCount = 0;
 
-            var sourceTags = FindTagsForElements(doc, sourceView, new List<ElementId> { sourceElementId });
-            var targetTags = FindTagsForElements(doc, targetView, new List<ElementId> { targetElementId });
-
-            if (sourceTags.Count > 0 && targetTags.Count > 0)
+            // 1. Xóa tag cũ ở Target (nếu yêu cầu) - skip Reo Tag nếu excludeReoTag
+            if (deleteExistingTargetTags)
             {
-                var sourceTag = doc.GetElement(sourceTags.First()) as IndependentTag;
-                var targetTag = doc.GetElement(targetTags.First()) as IndependentTag;
+                var existingTargetTags = FindTagsForElements(doc, targetView, new List<ElementId> { targetElementId });
+                foreach (var tagId in existingTargetTags)
+                {
+                    if (excludeReoTag)
+                    {
+                        var tag = doc.GetElement(tagId) as IndependentTag;
+                        if (tag != null && IsReoTag(doc, tag)) continue;
+                    }
+                    try { doc.Delete(tagId); } catch { }
+                }
+            }
 
-                if (sourceTag != null && targetTag != null)
+            // 2. Tìm tất cả source tags - skip Reo Tag nếu excludeReoTag
+            var sourceTagIds = FindTagsForElements(doc, sourceView, new List<ElementId> { sourceElementId });
+            if (excludeReoTag)
+            {
+                sourceTagIds = sourceTagIds.Where(id =>
+                {
+                    var tag = doc.GetElement(id) as IndependentTag;
+                    return tag == null || !IsReoTag(doc, tag);
+                }).ToList();
+            }
+            if (sourceTagIds.Count == 0) return 0;
+
+            // 3. Tạo tag mới trong target view, gắn với target element, giống hệt source tag
+            var targetElem = doc.GetElement(targetElementId);
+            if (targetElem == null) return 0;
+            Reference targetRef = new Reference(targetElem);
+
+            // Lưu thông tin elbow để set sau khi Regenerate
+            var elbowInfos = new List<(IndependentTag newTag, XYZ elbowPos, Reference tRef)>();
+
+            foreach (var sTagId in sourceTagIds)
+            {
+                var sourceTag = doc.GetElement(sTagId) as IndependentTag;
+                if (sourceTag == null) continue;
+
+                try
+                {
+                    var newTag = IndependentTag.Create(doc,
+                        sourceTag.GetTypeId(),
+                        targetView.Id,
+                        targetRef,
+                        sourceTag.HasLeader,
+                        sourceTag.TagOrientation,
+                        sourceTag.TagHeadPosition);
+
+                    if (newTag != null)
+                    {
+                        createdCount++;
+
+                        if (sourceTag.HasLeader)
+                        {
+                            try
+                            {
+                                newTag.LeaderEndCondition = sourceTag.LeaderEndCondition;
+
+                                var taggedRefs = sourceTag.GetTaggedReferences();
+                                if (taggedRefs.Count > 0)
+                                {
+                                    var srcRef = taggedRefs.First();
+
+                                    // Set LeaderEnd ngay (cho Free mode)
+                                    if (sourceTag.LeaderEndCondition == LeaderEndCondition.Free)
+                                    {
+                                        try
+                                        {
+                                            XYZ srcLeaderEnd = sourceTag.GetLeaderEnd(srcRef);
+                                            newTag.SetLeaderEnd(targetRef, srcLeaderEnd);
+                                        }
+                                        catch { }
+                                    }
+
+                                    // Lưu elbow position để set sau Regenerate
+                                    try
+                                    {
+                                        XYZ srcElbow = sourceTag.GetLeaderElbow(srcRef);
+                                        elbowInfos.Add((newTag, srcElbow, targetRef));
+                                    }
+                                    catch { }
+                                }
+                            }
+                            catch { }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            // 4. Regenerate để Revit thiết lập geometry leader
+            if (elbowInfos.Count > 0)
+            {
+                doc.Regenerate();
+
+                // Set elbow position sau khi leader geometry đã sẵn sàng
+                foreach (var info in elbowInfos)
                 {
                     try
                     {
-                        targetTag.HasLeader = sourceTag.HasLeader;
-                        targetTag.TagHeadPosition = sourceTag.TagHeadPosition;
+                        info.newTag.SetLeaderElbow(info.tRef, info.elbowPos);
                     }
                     catch { }
                 }
             }
+
+            return createdCount;
+        }
+
+        /// <summary>
+        /// Kiểm tra xem tag có phải là "Reo Tag" family không.
+        /// Matches: RINCO_TAG_Reo, Reo Tag_Mark, v.v.
+        /// </summary>
+        private bool IsReoTag(Document doc, IndependentTag tag)
+        {
+            try
+            {
+                var tagType = doc.GetElement(tag.GetTypeId()) as ElementType;
+                if (tagType != null)
+                {
+                    // Check FamilyName chứa "Reo" (bắt RINCO_TAG_Reo)
+                    // hoặc Name chứa "Reo Tag" (bắt Reo Tag_Mark)
+                    if (tagType.FamilyName != null && tagType.FamilyName.IndexOf("Reo", StringComparison.OrdinalIgnoreCase) >= 0)
+                        return true;
+                    if (tagType.Name != null && tagType.Name.IndexOf("Reo Tag", StringComparison.OrdinalIgnoreCase) >= 0)
+                        return true;
+                }
+            }
+            catch { }
+            return false;
         }
 
         /// <summary>

@@ -33,9 +33,8 @@ namespace RincoMTO.Core
             // Add Buttons to General Panel
             AddDuplicateSheetButton(generalPanel);
             AddMtoCheckButton(generalPanel);
-            AddMtoGroupBarButton(generalPanel);
-            AddMtoQueryButton(generalPanel);
             AddMtoSmartTagButton(generalPanel);
+            AddPtReportButton(generalPanel);
             AddRenameSheetNumberButton(generalPanel);
         }
 
@@ -103,33 +102,7 @@ namespace RincoMTO.Core
             pb.Image = LoadIcon("DefaultIcon.png", 16);
         }
 
-        private static void AddMtoGroupBarButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdMtoGroupBar",
-                "MTO Group\nBar",
-                _assemblyPath,
-                "RincoMTO.Tools.MtoGroupBar.Command"
-            );
-            btnData.ToolTip = "Group rebar by adjacency.";
 
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            try { pb.LargeImage = LoadIcon("DefaultIcon.png"); pb.Image = LoadIcon("DefaultIcon.png", 16); } catch { }
-        }
-
-        private static void AddMtoQueryButton(RibbonPanel panel)
-        {
-            PushButtonData btnData = new PushButtonData(
-                "cmdMtoQuery",
-                "MTO\nQuery",
-                _assemblyPath,
-                "RincoMTO.Tools.MTOQuery.Command"
-            );
-            btnData.ToolTip = "MTO Query.";
-
-            PushButton pb = panel.AddItem(btnData) as PushButton;
-            try { pb.LargeImage = LoadIcon("DefaultIcon.png"); pb.Image = LoadIcon("DefaultIcon.png", 16); } catch { }
-        }
 
         private static void AddMtoSmartTagButton(RibbonPanel panel)
         {
@@ -140,6 +113,20 @@ namespace RincoMTO.Core
                 "RincoMTO.Tools.MtoSmartTag.Command"
             );
             btnData.ToolTip = "MTO Smart Tag tool.";
+
+            PushButton pb = panel.AddItem(btnData) as PushButton;
+            try { pb.LargeImage = LoadIcon("DefaultIcon.png"); pb.Image = LoadIcon("DefaultIcon.png", 16); } catch { }
+        }
+
+        private static void AddPtReportButton(RibbonPanel panel)
+        {
+            PushButtonData btnData = new PushButtonData(
+                "cmdPtReport",
+                "PT\nReport",
+                _assemblyPath,
+                "RincoMTO.Tools.PtReport.Command"
+            );
+            btnData.ToolTip = "Create a table to review all PTs in active view.";
 
             PushButton pb = panel.AddItem(btnData) as PushButton;
             try { pb.LargeImage = LoadIcon("DefaultIcon.png"); pb.Image = LoadIcon("DefaultIcon.png", 16); } catch { }

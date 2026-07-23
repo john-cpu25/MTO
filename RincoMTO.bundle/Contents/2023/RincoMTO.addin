@@ -1,10 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
 <RevitAddIns>
     <AddIn Type="Application">
         <Name>RincoMTO</Name>
         <Assembly>RincoMTO.dll</Assembly>
         <FullClassName>RincoMTO.App</FullClassName>
-        <AddInId>08F87E2B-7F4D-4BDF-A1FE-D2876C51EC70</AddInId>
+        <AddInId>39F764BD-C7F0-4980-AF74-C3573D11DD23</AddInId>
         <VendorId>NGUYEN</VendorId>
         <VendorDescription>Nguyen, Architecture &amp; Engineering</VendorDescription>
     </AddIn>
